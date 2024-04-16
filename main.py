@@ -3,6 +3,16 @@ from tkinter import ttk
 
 import security
 
+
+def activate_security(event_id):
+    sec = security.Security(entry_username.get(), entry_pass.get(), entry_username, entry_pass, tabControl)
+    if event_id == 1:
+        sec.login()
+        tab1_canvas.itemconfig(txt_splash, text=f"Welcome, {sec.get_current_user()[1]}")
+    elif event_id == 2:
+        sec.create_user()
+
+
 with open("config.txt") as strings:
     for line in strings:
         key, value = line.replace(' ', '').strip().split("=")
@@ -33,7 +43,7 @@ def window_adjustment(event):
     # Readjusts elements to stay in the same position no matter window size
     tab1_canvas.coords(txt_header1, tab1_w / 2, 5)
     tab1_canvas.coords(txt_splash, tab1_w / 2, tab1_h * .1)
-    tab1_canvas.coords(txt_disclaimer, tab1_w * .5, tab1_canvas.coords(txt_splash)[1] + 50)
+    tab1_canvas.coords(txt_disclaimer, tab1_w * .5, tab1_canvas.coords(txt_splash)[1] + 60)
     tab1_canvas.coords(win_login_display, tab1_w / 2, tab1_h * .8)
     tab1_canvas.coords(win_create_user_display, tab1_w / 2, btn_login.winfo_y() + 45)
     tab1_canvas.coords(txt_username, entry_username.winfo_x() - 40, entry_username.winfo_y())
@@ -56,7 +66,6 @@ def hide_tabs():
 
 if __name__ == "__main__":
     root = tk.Tk()
-
     # This is the style sheet for the ttk module
     style = ttk.Style()
     style.theme_create("CustomStyle", parent='classic',
@@ -111,16 +120,12 @@ if __name__ == "__main__":
     txt_disclaimer = tab1_canvas.create_text(0, 0, anchor='n', font=("Candara Light", 10), text=disclaimer)
     txt_username = tab1_canvas.create_text(0, 0, anchor='n', font=("Candara Light", 12), text=lbl_username)
     txt_password = tab1_canvas.create_text(0, 0, anchor='n', font=("Candara Light", 12), text=lbl_password)
-    # win_lbl_user = tab1_canvas.create_text()
+
     entry_username = tk.Entry(tab1, width=40, font=("Candara Light", 12))
     entry_pass = tk.Entry(tab1, show="*", width=40, font=("Candara Light", 12))
-
-    btn_login = tk.Button(tab1, text="Login", width=20, anchor='center',
-                          command=lambda: security.login(entry_username.get(), entry_pass.get(), tabControl))
-
-    btn_create_user = tk.Button(tab1, text="New User", width=20, anchor='center',
-                                command=lambda: security.create_user(entry_username.get(), entry_pass.get(),
-                                                                     entry_username, entry_pass))
+    # Creates a security object for logging in and creating users
+    btn_login = tk.Button(tab1, text="Login", width=20, anchor='center', command=lambda: activate_security(1))
+    btn_create_user = tk.Button(tab1, text="New User", width=20, anchor='center', command=lambda: activate_security(2))
 
     win_login_display = tab1_canvas.create_window(0, 0, anchor='center', window=btn_login)
     win_create_user_display = tab1_canvas.create_window(0, 0, anchor='center', window=btn_create_user)
