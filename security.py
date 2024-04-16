@@ -4,80 +4,90 @@ import tkinter as tk
 from tkinter import ttk
 
 
-def create_user(user: str, password: str, user_entry: tk.Entry, pass_entry: tk.Entry):
-    connection = sqlite3.connect("Users.db")
-    cursor = connection.cursor()
-    if user == '':
-        user = None
-    elif not user.isalpha():
-        user = None
-    if password == '':
-        password = None
+class Security:
+    def __init__(self, user: str, password: str, user_entry: tk.Entry, pass_entry: tk.Entry, tabs: ttk.Notebook):
+        self.current_user = None
+        self.user = user
+        self.password = password
+        self.user_entry = user_entry
+        self.pass_entry = pass_entry
+        self.tabs = tabs
 
-    if user is not None and password is not None:
-        cursor.execute("""
-        CREATE TABLE IF NOT EXISTS users(
-        id INTEGER PRIMARY KEY,
-        date_created DATETIME,
-        user_name STRING,
-        password STRING)""")
+    def create_user(self):
+        connection = sqlite3.connect("Users.db")
+        cursor = connection.cursor()
+        if self.user == '':
+            user = None
+        elif not self.user.isalpha():
+            user = None
+        if self.password == '':
+            password = None
 
-        date = dt.datetime.now()
-        user = user
-        password = password
+        if self.user is not None and self.password is not None:
+            cursor.execute("""
+            CREATE TABLE IF NOT EXISTS users(
+            id INTEGER PRIMARY KEY,
+            date_created DATETIME,
+            user_name STRING,
+            password STRING)""")
 
-        cursor.execute("""
-        INSERT INTO users(
-        date_created,
-        user_name,
-        password) VALUES(?,?,?)""", (date, user, password))
+            date = dt.datetime.now()
+            user = self.user
+            password = self.password
 
-        connection.commit()
+            cursor.execute("""
+            INSERT INTO users(
+            date_created,
+            user_name,
+            password) VALUES(?,?,?)""", (date, user, password))
 
-    cursor.execute("SELECT * FROM users")
-    rows = cursor.fetchall()
-    for row in rows:
-        print(row)
+            connection.commit()
 
-    user_entry.delete(0, tk.END)
-    pass_entry.delete(0, tk.END)
+        cursor.execute("SELECT * FROM users")
+        rows = cursor.fetchall()
+        for row in rows:
+            print(row)
 
+        self.user_entry.delete(0, tk.END)
+        self.pass_entry.delete(0, tk.END)
 
-def login(user: str, password: str, tabs: ttk.Notebook):
-    """
-    plan to have this return true if username and password match item in database
-    :param tabs:
-    :param user:
-    :param password:
-    :return:
-    """
-    connection = sqlite3.connect("Users.db")
-    cursor = connection.cursor()
+    def login(self):
+        """
+        plan to have this return true if username and password match item in database
+        :param tabs:
+        :param user:
+        :param password:
+        :return:
+        """
+        connection = sqlite3.connect("Users.db")
+        cursor = connection.cursor()
 
-    if user == '':
-        user = None
-    elif not user.isalpha():
-        user = None
+        if self.user == '':
+            user = None
+        elif not self.user.isalpha():
+            user = None
 
-    if password == '':
-        password = None
+        if self.password == '':
+            password = None
 
-    if user is not None and password is not None:
-        cursor.execute((f"""SELECT 
-        user_name, 
-        password 
-        FROM users 
-        WHERE user_name = ? AND password = ?"""), (user, password))
+        if self.user is not None and self.password is not None:
+            cursor.execute((f"""SELECT
+            id, 
+            user_name, 
+            password 
+            FROM users 
+            WHERE user_name = ? AND password = ?"""), (self.user, self.password))
 
-        check = cursor.fetchone()
+            check = cursor.fetchone()
 
-        if check:
-            print("found match")
-            tab_count = tabs.index('end')
-            for i in range(1, tab_count):
-                tabs.tab(i, state="normal")
-        else:
-            print("no match")
+            if check:
+                print(f"found match: id {check[0]},Name {check[1]},Password {check[2]}")
+                tab_count = self.tabs.index('end')
+                for i in range(1, tab_count):
+                    self.tabs.tab(i, state="normal")
+                    self.current_user = check
+            else:
+                print("no match")
 
-
-
+    def get_current_user(self):
+        return self.current_user
