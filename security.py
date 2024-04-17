@@ -18,7 +18,7 @@ class Security:
         cursor = connection.cursor()
         if self.user == '':
             self.user = None
-        elif not self.user.isalpha():
+        elif not self.user.isalnum():
             self.user = None
         if self.password == '':
             self.password = None
@@ -88,6 +88,9 @@ class Security:
                     self.current_user = check
             else:
                 print("no match")
+
+        self.user_entry.delete(0, tk.END)
+        self.pass_entry.delete(0, tk.END)
 
     def get_current_user(self):
         return self.current_user
