@@ -6,6 +6,15 @@ from tkinter import ttk
 
 class Security:
     def __init__(self, user: str, password: str, user_entry: tk.Entry, pass_entry: tk.Entry, tabs: ttk.Notebook):
+        """
+        user_entry and pass_entry are the entry boxes that contain the username and password.
+        tabs is the Notebook that has your tabs in it.
+        :param user:
+        :param password:
+        :param user_entry:
+        :param pass_entry:
+        :param tabs:
+        """
         self.current_user = None
         self.user = user
         self.password = password
@@ -53,13 +62,6 @@ class Security:
         self.pass_entry.delete(0, tk.END)
 
     def login(self):
-        """
-        plan to have this return true if username and password match item in database
-        :param tabs:
-        :param user:
-        :param password:
-        :return:
-        """
         connection = sqlite3.connect("Users.db")
         cursor = connection.cursor()
 
