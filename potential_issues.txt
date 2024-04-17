@@ -1,1 +1,1 @@
-- If there are 2 users with the same password and name there is no fallback. It will probably grab the first user of the two.
+-> No notification that a username is not unique so the user will not know that no new user is created.
