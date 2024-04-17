@@ -17,11 +17,11 @@ class Security:
         connection = sqlite3.connect("Users.db")
         cursor = connection.cursor()
         if self.user == '':
-            user = None
+            self.user = None
         elif not self.user.isalpha():
-            user = None
+            self.user = None
         if self.password == '':
-            password = None
+            self.password = None
 
         if self.user is not None and self.password is not None:
             cursor.execute("""
@@ -44,10 +44,10 @@ class Security:
 
             connection.commit()
 
-        cursor.execute("SELECT * FROM users")
-        rows = cursor.fetchall()
-        for row in rows:
-            print(row)
+            cursor.execute("SELECT * FROM users")
+            rows = cursor.fetchall()
+            for row in rows:
+                print(row)
 
         self.user_entry.delete(0, tk.END)
         self.pass_entry.delete(0, tk.END)
