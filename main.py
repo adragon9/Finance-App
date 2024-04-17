@@ -3,16 +3,6 @@ from tkinter import ttk
 
 import security
 
-
-def activate_security(event_id):
-    sec = security.Security(entry_username.get(), entry_pass.get(), entry_username, entry_pass, tabControl)
-    if event_id == 1:
-        sec.login()
-        tab1_canvas.itemconfig(txt_splash, text=f"Welcome, {sec.get_current_user()[1]}")
-    elif event_id == 2:
-        sec.create_user()
-
-
 with open("config.txt") as strings:
     for line in strings:
         key, value = line.replace(' ', '').strip().split("=")
@@ -26,6 +16,15 @@ with open("config.txt") as strings:
                 win_h = int(value)
             except ValueError:
                 win_h = 600
+
+
+def activate_security(event_id):
+    sec = security.Security(entry_username.get(), entry_pass.get(), entry_username, entry_pass, tabControl)
+    if event_id == 1:
+        sec.login()
+        tab1_canvas.itemconfig(txt_splash, text=f"Welcome, {sec.get_current_user()[1]}")
+    elif event_id == 2:
+        sec.create_user()
 
 
 # Ensures that all elements stay in relative positions when window size is changed

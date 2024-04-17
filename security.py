@@ -26,20 +26,21 @@ class Security:
         if self.user is not None and self.password is not None:
             cursor.execute("""
             CREATE TABLE IF NOT EXISTS users(
-            id INTEGER PRIMARY KEY,
+            user_name STRING PRIMARY KEY,
             date_created DATETIME,
-            user_name STRING,
             password STRING)""")
 
             date = dt.datetime.now()
             user = self.user
             password = self.password
-
-            cursor.execute("""
-            INSERT INTO users(
-            date_created,
-            user_name,
-            password) VALUES(?,?,?)""", (date, user, password))
+            try:
+                cursor.execute("""
+                INSERT INTO users(
+                user_name,
+                date_created,
+                password) VALUES(?,?,?)""", (user, date, password))
+            except sqlite3.IntegrityError:
+                print("USERNAME TAKEN")
 
             connection.commit()
 
@@ -72,7 +73,6 @@ class Security:
 
         if self.user is not None and self.password is not None:
             cursor.execute((f"""SELECT
-            id, 
             user_name, 
             password 
             FROM users 
@@ -81,7 +81,7 @@ class Security:
             check = cursor.fetchone()
 
             if check:
-                print(f"found match: id {check[0]},Name {check[1]},Password {check[2]}")
+                print(f"found match: Name {check[0]},Password {check[1]}")
                 tab_count = self.tabs.index('end')
                 for i in range(1, tab_count):
                     self.tabs.tab(i, state="normal")
