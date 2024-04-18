@@ -120,18 +120,17 @@ class User:
                 print("Balance Set, look at you high roller.")
             else:
                 print("Balance Set")
+
+            cursor.execute("""UPDATE users
+            SET balance = ?
+            WHERE user_name = ?""", (self.balance, self.username))
+
+            connection.commit()
+            connection.close()
             success = True
         except ValueError:
-            print("not a number balance set to 0")
-            self.balance = 0.0
+            print("A problem occurred")
             success = False
-
-        cursor.execute("""UPDATE users
-        SET balance = ?
-        WHERE user_name = ?""", (self.balance, self.username))
-
-        connection.commit()
-        connection.close()
 
         # Just in case something goes wrong
         if success is None:

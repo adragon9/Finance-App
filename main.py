@@ -77,6 +77,9 @@ def app_btn_manager(event_id):
         if balance:
             tab2_canvas.itemconfig(txt_user_info2, text=f"{str_success_balance}{saved_user.get_balance():.2f}")
             root.after(3000, lambda: revert_text(tab2_canvas, txt_user_info2))
+        else:
+            tab2_canvas.itemconfig(txt_user_info2, text=f"{str_fail_balance}{saved_user.get_balance():.2f}")
+            root.after(3000, lambda: revert_text(tab2_canvas, txt_user_info2))
 
 
 """
@@ -163,7 +166,7 @@ if __name__ == "__main__":
     str_success = "Login successful"
     str_blank = "Entry boxes not filled out"
     str_success_balance = "You successfully set your balance too: "
-    str_fail_balance = "Your balance was not updated"
+    str_fail_balance = "Your balance input was not valid balance set to: "
     str_fail_create = "User already exists or some other error has occurred user not created."
     str_username = "Username"
     str_password = "Password"
