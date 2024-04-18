@@ -20,17 +20,23 @@ with open("config.txt") as strings:
 
 
 def app_btn_manager(event_id):
+    # Needed so that the entire program has access to the current active use.
+    # This is due to a lack of foresight as every time this event manager got called the cur_user var got overwritten
     global saved_user
-    cur_user = user.User(entry_username.get(), entry_pass.get(), entry_username, entry_pass, tabControl)
+    cur_user = user.User(entry_username.get(), entry_pass.get(), entry_username, entry_pass)
     # Login button pressed on home tab
     if event_id == 1:
-        if cur_user.get_current_user() != '':
-            cur_user.login()
+        cur_user.login()
+        if cur_user.get_current_user() is not None:
+            show_tabs()
             tab1_canvas.itemconfig(txt_splash, text=f"Welcome, {cur_user.get_current_user()}")
             btn_login.configure(state="disabled")
             btn_create_user.configure(state="disabled")
             btn_logout.configure(state="normal")
             saved_user = cur_user
+            print("saved_user = " + saved_user.get_current_user())
+        else:
+            print("Not logged in")
 
     # New user button pressed on home tab
     elif event_id == 2:
@@ -41,7 +47,10 @@ def app_btn_manager(event_id):
         tab1_canvas.itemconfig(txt_splash, text=splash)
         btn_login.configure(state="normal")
         btn_create_user.configure(state="normal")
+        btn_logout.configure(state="disabled")
         hide_tabs()
+        # Wanted to make sure that in when the logout is pressed that variable gets cleared
+        saved_user = None
 
     elif event_id == 4:
         saved_user.set_balance(entry_balance.get())
@@ -83,13 +92,20 @@ def window_adjustment(event):
     tab2_canvas.coords(txt_header2, tab2_w / 2, 5)
     tab2_canvas.coords(txt_balance_des, tab2_canvas.coords(txt_header2)[0], tab2_canvas.coords(txt_header2)[1] + 60)
     tab2_canvas.coords(win_balance_display, tab2_w / 2, tab2_h / 2)
-    tab2_canvas.coords(win_sbmt_bal_display, tab2_canvas.coords(win_balance_display)[0], tab2_canvas.coords(win_balance_display)[1] + 45)
+    tab2_canvas.coords(win_sbmt_bal_display, tab2_canvas.coords(win_balance_display)[0],
+                       tab2_canvas.coords(win_balance_display)[1] + 45)
 
 
 def hide_tabs():
     tab_count = tabControl.index('end')
     for i in range(1, tab_count):
         tabControl.tab(i, state="hidden")
+
+
+def show_tabs():
+    tab_count = tabControl.index('end')
+    for i in range(1, tab_count):
+        tabControl.tab(i, state="normal")
 
 
 if __name__ == "__main__":
@@ -174,6 +190,7 @@ if __name__ == "__main__":
 
     win_balance_display = tab2_canvas.create_window(0, 0, anchor='center', window=entry_balance)
     win_sbmt_bal_display = tab2_canvas.create_window(0, 0, anchor='center', window=btn_sbmt_bal)
+    # >>> Tab 2 Content END <<<
 
     # Add the tabs to the tab controller
     tabControl.add(tab1, text="Home")

@@ -5,7 +5,7 @@ from tkinter import ttk
 
 
 class User:
-    def __init__(self, username: str, password: str, user_entry: tk.Entry, pass_entry: tk.Entry, tabs: ttk.Notebook):
+    def __init__(self, username: str, password: str, user_entry: tk.Entry, pass_entry: tk.Entry):
         """
         user_entry and pass_entry are the entry boxes that contain the username and password.
         tabs is the Notebook that has your tabs in it.
@@ -15,30 +15,28 @@ class User:
         :param pass_entry:
         :param tabs:
         """
-        self.user = username
-        self.current_user = username
+        self.username = username
         self.password = password
         self.user_entry = user_entry
         self.pass_entry = pass_entry
-        self.tabs = tabs
         self.balance = 0.0
 
     def create_user(self):
         connection = sqlite3.connect("Users.db")
         cursor = connection.cursor()
-        if self.user == '':
-            self.user = None
-        elif not self.user.isalnum():
-            self.user = None
+        if self.username == '':
+            self.username = None
+        elif not self.username.isalnum():
+            self.username = None
         if self.password == '':
             self.password = None
 
-        if self.user is not None and self.password is not None:
+        if self.username is not None and self.password is not None:
             cursor.execute("""
             CREATE TABLE IF NOT EXISTS users(
-            user_name STRING PRIMARY KEY,
+            user_name TEXT PRIMARY KEY,
             date_created DATETIME,
-            password STRING,
+            password TEXT,
             balance MONEY)""")
 
             date = dt.datetime.now()
@@ -49,7 +47,7 @@ class User:
                 user_name,
                 date_created,
                 password,
-                balance) VALUES(?,?,?,?)""", (self.user, date, self.password, self.balance))
+                balance) VALUES(?,?,?,?)""", (self.username, date, self.password, self.balance))
             except sqlite3.IntegrityError:
                 print("USERNAME TAKEN")
 
@@ -68,31 +66,26 @@ class User:
         connection = sqlite3.connect("Users.db")
         cursor = connection.cursor()
 
-        if self.user == '':
-            self.user = None
-        elif not self.user.isalpha():
-            self.user = None
+        if self.username == '':
+            self.username = None
+        elif not self.username.isalnum():
+            self.username = None
 
         if self.password == '':
             self.password = None
 
-        if self.user is not None and self.password is not None:
+        if self.username is not None and self.password is not None:
             cursor.execute((f"""SELECT
             user_name, 
             password 
             FROM users 
-            WHERE user_name = ? AND password = ?"""), (self.user, self.password))
+            WHERE user_name = ? AND password = ?"""), (self.username, self.password))
 
             check = cursor.fetchone()
-
             if check:
                 print(f"found match: Name {check[0]},Password {check[1]}")
-                tab_count = self.tabs.index('end')
-                for i in range(1, tab_count):
-                    self.tabs.tab(i, state="normal")
-                    print(check[0])
-                    self.current_user = check[0]
             else:
+                self.username = None
                 print("no match")
 
         connection.close()
@@ -100,7 +93,7 @@ class User:
         self.pass_entry.delete(0, tk.END)
 
     def get_current_user(self):
-        return self.current_user
+        return self.username
 
     def get_income(self):
         return self.balance
@@ -113,12 +106,15 @@ class User:
         except ValueError:
             self.balance = 0.0
 
-        print(self.user)
-        print(self.current_user)
+        # remove for final build ;)
+        if self.balance > 9999999:
+            print("Balance Set, look at you high roller.")
+        else:
+            print("Balance Set")
 
         cursor.execute("""UPDATE users
         SET balance = ?
-        WHERE user_name = ?""", (self.balance, self.current_user))
+        WHERE user_name = ?""", (self.balance, self.username))
 
         connection.commit()
         connection.close()
