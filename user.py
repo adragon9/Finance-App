@@ -1,7 +1,6 @@
-import sqlite3
 import datetime as dt
+import sqlite3
 import tkinter as tk
-from tkinter import ttk
 
 
 class User:
@@ -50,7 +49,10 @@ class User:
                 balance) VALUES(?,?,?,?)""", (self.username, date, self.password, self.balance))
             except sqlite3.IntegrityError:
                 print("USERNAME TAKEN")
-
+                connection.close()
+                self.user_entry.delete(0, tk.END)
+                self.pass_entry.delete(0, tk.END)
+                return False
             connection.commit()
 
             cursor.execute("SELECT * FROM users")
@@ -61,6 +63,7 @@ class User:
         connection.close()
         self.user_entry.delete(0, tk.END)
         self.pass_entry.delete(0, tk.END)
+        return True
 
     def login(self):
         connection = sqlite3.connect("Users.db")
@@ -84,16 +87,23 @@ class User:
             check = cursor.fetchone()
             if check:
                 print(f"found match: Name {check[0]},Password {check[1]}")
+                connection.close()
+                self.user_entry.delete(0, tk.END)
+                self.pass_entry.delete(0, tk.END)
+                return True
             else:
                 self.username = None
                 print("no match")
-
-        connection.close()
-        self.user_entry.delete(0, tk.END)
-        self.pass_entry.delete(0, tk.END)
+                connection.close()
+                self.user_entry.delete(0, tk.END)
+                self.pass_entry.delete(0, tk.END)
+                return False
 
     def get_current_user(self):
         return self.username
+
+    def get_current_password(self):
+        return self.password
 
     def get_income(self):
         return self.balance
@@ -101,16 +111,20 @@ class User:
     def set_balance(self, balance):
         connection = sqlite3.connect("Users.db")
         cursor = connection.cursor()
+        success = None
+
         try:
             self.balance = float(balance)
+            # remove for final build ;)
+            if self.balance > 9999999:
+                print("Balance Set, look at you high roller.")
+            else:
+                print("Balance Set")
+            success = True
         except ValueError:
+            print("not a number balance set to 0")
             self.balance = 0.0
-
-        # remove for final build ;)
-        if self.balance > 9999999:
-            print("Balance Set, look at you high roller.")
-        else:
-            print("Balance Set")
+            success = False
 
         cursor.execute("""UPDATE users
         SET balance = ?
@@ -118,3 +132,12 @@ class User:
 
         connection.commit()
         connection.close()
+
+        # Just in case something goes wrong
+        if success is None:
+            success = False
+
+        return success
+
+    def get_balance(self):
+        return self.balance
