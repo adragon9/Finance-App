@@ -122,7 +122,7 @@ def window_adjustment(event):
     tab2_canvas.coords(win_sbmt_bal_display, tab2_canvas.coords(win_balance_display)[0],
                        tab2_canvas.coords(win_balance_display)[1] + 45)
     tab2_canvas.coords(txt_user_info2, tab2_canvas.coords(win_sbmt_bal_display)[0], tab2_canvas.coords(win_sbmt_bal_display)[1] + 45)
-    tab2_canvas.coords(win_logout_display2, tab1_w - 10, tab1_h - 10)
+    tab2_canvas.coords(win_logout_display2, tab2_w - 10, tab2_h - 10)
 
 
 def hide_tabs():
