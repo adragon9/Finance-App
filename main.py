@@ -101,7 +101,7 @@ def window_adjustment(event):
     # Hopefully this will lead to some optimization down the line.
     # Instead of updating all elements it only updates the active tabs elements.
     cur_tab = tabControl.tab(tabControl.select(), "text")
-    if cur_tab == "Home":
+    if cur_tab == tab_names[0]:
         # print('updating 1')
         # Readjusts elements to stay in the same position no matter window size
         tabs_canvas[0].coords(txt_splash, tabs_w[0] / 2, tabs_canvas[0].coords(headers[0])[1] + 80)
@@ -114,7 +114,7 @@ def window_adjustment(event):
         tabs_canvas[0].coords(win_pass_display, tabs_w[0] / 2, entry_username.winfo_y() + 30)
         tabs_canvas[0].coords(txt_user_info1, tabs_w[0] / 2, entry_username.winfo_y() + 60)
 
-    elif cur_tab == "Set Balance":
+    elif cur_tab == tab_names[1]:
         # print('updating 2')
         tabs_canvas[1].coords(txt_balance_des, tabs_canvas[1].coords(headers[1])[0],
                               tabs_canvas[1].coords(headers[1])[1] + 80)
@@ -124,7 +124,7 @@ def window_adjustment(event):
         tabs_canvas[1].coords(txt_user_info2, tabs_canvas[1].coords(win_sbmt_bal_display)[0],
                               tabs_canvas[1].coords(win_sbmt_bal_display)[1] + 45)
 
-    elif cur_tab == "Test":
+    elif cur_tab == tab_names[2]:
         # print('updating 3')
         pass
 
@@ -147,9 +147,10 @@ def show_tabs():
 
 
 if __name__ == "__main__":
-    # This is a master control for the number of tabs
+    # This is a master control for the number and names of tabs
+    # >>> THE NUMBER OF TABS AND THE NUMBER OF STRINGS IN tab_names MUST MATCH <<<
     num_tabs = 3
-
+    tab_names = ["Home", "Set Balance", "TBD"]
     # Needed arrays
     tabs_w = []
     tabs_h = []
@@ -254,9 +255,9 @@ if __name__ == "__main__":
     # >>> Tab 2 Content END <<<
 
     # Add the tabs to the tab controller
-    tabControl.add(tabs[0], text="Home")
-    tabControl.add(tabs[1], text="Set Balance")
-    tabControl.add(tabs[2], text="Test")
+    for i in range(0, num_tabs):
+        tabControl.add(tabs[i], text=tab_names[i])
+
     tabControl.pack(fill=tk.BOTH, expand=True)
     # This is what calls the window adjust definition when the window is configured.
     hide_tabs()
