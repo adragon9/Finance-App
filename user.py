@@ -1,6 +1,6 @@
+import datetime
 import datetime as dt
 import sqlite3
-import tkinter as tk
 
 
 class User:
@@ -10,9 +10,6 @@ class User:
         tabs is the Notebook that has your tabs in it.
         :param username:
         :param password:
-        :param user_entry:
-        :param pass_entry:
-        :param tabs:
         """
         self.username = username
         self.password = password
@@ -51,6 +48,7 @@ class User:
                 return False
             connection.commit()
 
+            # Debug print remove later
             cursor.execute("SELECT * FROM users")
             rows = cursor.fetchall()
             for row in rows:
@@ -58,6 +56,36 @@ class User:
 
         connection.close()
         return True
+
+    def create_expense(self, expense_cat, expense_desc):
+        if self.username != '':
+            connection = sqlite3.connect('Users.db')
+            cursor = connection.cursor()
+            date = datetime.datetime.now()
+
+            cursor.execute("""CREATE TABLE IF NOT EXISTS expense_categories(
+            category_name TEXT,
+            user_name TEXT,
+            category_date DATE,
+            category_desc TEXT,
+            PRIMARY KEY(category_name, user_name),
+            FOREIGN KEY (user_name) REFERENCES users(user_name))""")
+            try:
+                cursor.execute("""INSERT INTO expense_categories(
+                category_name,
+                user_name,
+                category_date,
+                category_desc) Values(?,?,?,?)""", (expense_cat, self.username, date, expense_desc))
+            except sqlite3.IntegrityError:
+                print("CATEGORY EXISTS")
+                connection.close()
+                return False
+
+            connection.commit()
+            connection.close()
+            return True
+        else:
+            return False
 
     # Modify the login method to return True on successful login, and False otherwise
     def login(self):

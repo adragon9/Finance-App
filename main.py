@@ -1,10 +1,10 @@
-import tkinter as tk
 import sqlite3
+import tkinter as tk
 from tkinter import ttk
 
 import TabManager
-from AppData import Window
 import user
+from AppData import Window
 
 with open("config.txt") as strings:
     for line in strings:
@@ -108,6 +108,16 @@ def app_btn_manager(event_id):
         else:
             print("No user logged in")
 
+    elif event_id == 5:
+        Window.saved_dat_expense_desc = entry_expense_desc.get("1.0", "end-1c")
+        Window.saved_dat_expense_cat = Window.dat_expense_cat.get()
+
+        entry_expense_desc.delete("1.0", "end-1c")
+        entry_expense_cat.delete(0, tk.END)
+
+        if Window.saved_dat_expense_cat != '':
+            print(Window.saved_dat_expense_cat, Window.saved_dat_expense_desc)
+            Window.current_user.create_expense(Window.saved_dat_expense_cat, Window.saved_dat_expense_desc)
 
 """
 Ensures that all elements stay in relative positions when window size is changed
@@ -152,8 +162,9 @@ def window_adjustment(event):
                               tabs_canvas[1].coords(win_sbmt_bal_display)[1] + 45)
 
     elif cur_tab == tab_names[2]:
-        # print('updating 3')
-        pass
+        tabs_canvas[2].coords(win_expense_cat, tabs_w[2] / 2, tabs_h[2] / 2)
+        tabs_canvas[2].coords(win_expense_desc, tabs_w[2] / 2, tabs_canvas[2].coords(win_expense_cat)[1] + 10)
+        tabs_canvas[2].coords(win_sbmt_expense, tabs_w[2] / 2, tabs_h[2] - 10)
 
 
 # The logout button was getting a focus box for some reason, this fixed it.
@@ -177,7 +188,7 @@ if __name__ == "__main__":
     # This is a master control for the number and names of tabs
     # >>> THE NUMBER OF TABS AND THE NUMBER OF STRINGS IN tab_names MUST MATCH <<<
     num_tabs = 3
-    tab_names = ["Home", "Set Balance", "TBD"]
+    tab_names = ["Home", "Set Balance", "Expenses"]
     # Needed arrays
     tabs_w = []
     tabs_h = []
@@ -201,6 +212,7 @@ if __name__ == "__main__":
     Window.dat_user = tk.StringVar()
     Window.dat_password = tk.StringVar()
     Window.dat_balance = tk.StringVar()
+    Window.dat_expense_cat = tk.StringVar()
 
     # This is the style sheet for the ttk module
     style = ttk.Style()
@@ -285,6 +297,16 @@ if __name__ == "__main__":
     win_balance_display = tabs_canvas[1].create_window(0, 0, anchor='center', window=entry_balance)
     win_sbmt_bal_display = tabs_canvas[1].create_window(0, 0, anchor='center', window=btn_sbmt_bal)
     # >>> Tab 2 Content END <<<
+
+    # Tab 3 Content
+    entry_expense_cat = tk.Entry(tabs[2], width=40, font=("Candara Light", 12), textvariable=Window.dat_expense_cat)
+    entry_expense_desc = tk.Text(tabs[2], wrap=tk.WORD, font=("Candara Light", 12), height=5, width=40)
+    btn_sbmt_expense = tk.Button(tabs[2], width=20, font=("Candara Light", 12), text="Submit", command=lambda: app_btn_manager(5))
+
+    win_expense_cat = tabs_canvas[2].create_window(0, 0, anchor='s', window=entry_expense_cat)
+    win_expense_desc = tabs_canvas[2].create_window(0, 0, anchor='n', window=entry_expense_desc)
+    win_sbmt_expense = tabs_canvas[2].create_window(0, 0, anchor='s', window=btn_sbmt_expense)
+    # >>>Tab 3 Content End
 
     # Add the tabs to the tab controller
     for i in range(0, num_tabs):
