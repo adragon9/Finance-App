@@ -24,9 +24,11 @@ def revert_text(canvas, text):
 
 
 def app_btn_manager(event_id):
+    # Needed so that the entire program has access to the current active use.
+    # This is due to a lack of foresight as every time this event manager got called the cur_user var got overwritten
     global saved_user
     cur_user = user.User(entry_username.get(), entry_pass.get(), entry_username, entry_pass)
-    
+    #Login button pressed on home tab
     if event_id == 1:
         if cur_user.login():
             show_tabs()
@@ -42,6 +44,7 @@ def app_btn_manager(event_id):
             tabs_canvas[0].itemconfig(txt_user_info1, text=str_fail_login)
             root.after(3000, lambda: revert_text(tabs_canvas[0], txt_user_info1))
 
+        #New user button pressed on home tab
     elif event_id == 2:
         status = cur_user.create_user()
         if cur_user.get_current_user() is not None and cur_user.get_current_password() is not None:
@@ -55,6 +58,7 @@ def app_btn_manager(event_id):
             tabs[0].itemconfig(txt_user_info1, text=str_blank)
             root.after(3000, lambda: revert_text(tabs_canvas[0], txt_user_info1))
 
+    #Logout button on home tab
     elif event_id == 3:
         tabs_canvas[0].itemconfig(txt_splash, text=str_splash)
         btn_login.configure(state="normal")
@@ -62,6 +66,8 @@ def app_btn_manager(event_id):
         for i in range(0, num_tabs):
             logouts[i].configure(state='disabled')
         hide_tabs()
+
+        #Resets user state
         saved_user = None
         
         #clears entry balance text field
