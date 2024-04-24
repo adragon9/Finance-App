@@ -1,7 +1,9 @@
 import tkinter as tk
+import sqlite3
 from tkinter import ttk
 
 import TabManager
+from AppData import Window
 import user
 
 with open("config.txt") as strings:
@@ -23,31 +25,42 @@ def revert_text(canvas, text):
     canvas.itemconfig(text, text="")
 
 
+def data_backup():
+    connection = sqlite3.connect('Users.db')
+    backup_db = sqlite3.connect(f'Users-backup.db')
+    connection.backup(backup_db)
+    backup_db.close()
+    connection.close()
+
+
 def app_btn_manager(event_id):
     # Needed so that the entire program has access to the current active use.
     # This is due to a lack of foresight as every time this event manager got called the cur_user var got overwritten
-    global saved_user
-    cur_user = user.User(entry_username.get(), entry_pass.get(), entry_username, entry_pass)
+    cur_user = user.User(Window.dat_user.get(), Window.dat_password.get())
     # Login button pressed on home tab
     if event_id == 1:
-        cur_user.login()
-        if cur_user.get_current_user() is not None:
-            show_tabs()
-            tabs_canvas[0].itemconfig(txt_splash, text=f"Welcome, {cur_user.get_current_user()}")
+        if cur_user.login():
+            # Save the current users data
+            Window.current_user = cur_user
+            Window.saved_dat_user = Window.dat_user.get()
+            Window.saved_dat_pass = Window.dat_password.get()
             btn_login.configure(state="disabled")
             btn_create_user.configure(state="disabled")
+            # This enables all the logout buttons
             for i in range(0, num_tabs):
                 logouts[i].configure(state='normal')
+            # Inform user, update displays, clear inputs
+            show_tabs()
+            tabs_canvas[0].itemconfig(txt_splash, text=f"Welcome, {cur_user.get_current_user()}")
             tabs_canvas[0].itemconfig(txt_user_info1, text=str_success)
+            entry_username.delete(0, tk.END)
+            entry_pass.delete(0, tk.END)
             root.after(3000, lambda: revert_text(tabs_canvas[0], txt_user_info1))
-            saved_user = cur_user
-            # print("saved_user = " + saved_user.get_current_user())
         else:
             tabs_canvas[0].itemconfig(txt_user_info1, text=str_fail_login)
             root.after(3000, lambda: revert_text(tabs_canvas[0], txt_user_info1))
-            # print("Not logged in")
 
-    # New user button pressed on home tab
+        # Create user event
     elif event_id == 2:
         status = cur_user.create_user()
         if cur_user.get_current_user() is not None and cur_user.get_current_password() is not None:
@@ -61,25 +74,39 @@ def app_btn_manager(event_id):
             tabs[0].itemconfig(txt_user_info1, text=str_blank)
             root.after(3000, lambda: revert_text(tabs_canvas[0], txt_user_info1))
 
-    # Logout button pressed on home tab
+    # Logout event
     elif event_id == 3:
-        tabs_canvas[0].itemconfig(txt_splash, text=str_splash)
+        # Clear saved user and password
+        Window.saved_dat_user = None
+        Window.saved_dat_pass = None
+        Window.saved_dat_balance = None
+        # print(Window.saved_dat_user, Window.saved_dat_pass, Window.saved_dat_balance)
         btn_login.configure(state="normal")
         btn_create_user.configure(state="normal")
         for i in range(0, num_tabs):
             logouts[i].configure(state='disabled')
         hide_tabs()
-        # Wanted to make sure that in when the logout is pressed that variable gets cleared
-        saved_user = None
+        tabs_canvas[0].itemconfig(txt_splash, text=str_splash)
 
     elif event_id == 4:
-        balance = saved_user.set_balance(entry_balance.get())
-        if balance:
-            tabs_canvas[1].itemconfig(txt_user_info2, text=f"{str_success_balance}{saved_user.get_balance():.2f}")
-            root.after(3000, lambda: revert_text(tabs_canvas[1], txt_user_info2))
+        # print(Window.saved_dat_user, Window.saved_dat_pass) <-- used to check if the username and pass was being saved
+        if Window.current_user is not None:
+            data_backup()
+            balance = Window.current_user.set_balance(entry_balance.get())
+            if balance:
+                tabs_canvas[1].itemconfig(txt_user_info2,
+                                          text=f"{str_success_balance}${Window.current_user.get_balance():,.2f}")
+                Window.saved_dat_balance = Window.current_user.get_balance()
+                entry_balance.delete(0, tk.END)
+                root.after(3000, lambda: revert_text(tabs_canvas[1], txt_user_info2))
+            else:
+                tabs_canvas[1].itemconfig(txt_user_info2,
+                                          text=f"{str_fail_balance}${Window.current_user.get_balance():,.2f}")
+                Window.saved_dat_balance = Window.current_user.get_balance()
+                entry_balance.delete(0, tk.END)
+                root.after(3000, lambda: revert_text(tabs_canvas[1], txt_user_info2))
         else:
-            tabs_canvas[1].itemconfig(txt_user_info2, text=f"{str_fail_balance}{saved_user.get_balance():.2f}")
-            root.after(3000, lambda: revert_text(tabs_canvas[1], txt_user_info2))
+            print("No user logged in")
 
 
 """
@@ -170,6 +197,11 @@ if __name__ == "__main__":
     logouts_windows = []
 
     root = tk.Tk()
+    # Initializing data class variables
+    Window.dat_user = tk.StringVar()
+    Window.dat_password = tk.StringVar()
+    Window.dat_balance = tk.StringVar()
+
     # This is the style sheet for the ttk module
     style = ttk.Style()
     style.theme_create("CustomStyle", parent='classic',
@@ -230,8 +262,8 @@ if __name__ == "__main__":
     txt_username = tabs_canvas[0].create_text(0, 0, anchor='n', font=("Candara Light", 12), text=str_username)
     txt_password = tabs_canvas[0].create_text(0, 0, anchor='n', font=("Candara Light", 12), text=str_password)
     txt_user_info1 = tabs_canvas[0].create_text(0, 0, anchor='n', font=("Candara Light", 12), text='')
-    entry_username = tk.Entry(tabs[0], width=40, font=("Candara Light", 12))
-    entry_pass = tk.Entry(tabs[0], show="*", width=40, font=("Candara Light", 12))
+    entry_username = tk.Entry(tabs[0], width=40, font=("Candara Light", 12), textvariable=Window.dat_user)
+    entry_pass = tk.Entry(tabs[0], show="*", width=40, font=("Candara Light", 12), textvariable=Window.dat_password)
 
     btn_login = tk.Button(tabs[0], text="Login", width=20, command=lambda: app_btn_manager(1))
     btn_create_user = tk.Button(tabs[0], text="New User", width=20, command=lambda: app_btn_manager(2))
@@ -247,7 +279,7 @@ if __name__ == "__main__":
     txt_balance_des = tabs_canvas[1].create_text(0, 0, anchor='n', font=("Candara Light", 12), justify='center',
                                                  text=str_balance_desc)
     txt_user_info2 = tabs_canvas[1].create_text(0, 0, anchor='n', font=("Candara Light", 12), text='')
-    entry_balance = tk.Entry(tabs[1], width=40, font=("Candara Light", 12))
+    entry_balance = tk.Entry(tabs[1], width=40, font=("Candara Light", 12), textvariable=Window.dat_balance)
     btn_sbmt_bal = tk.Button(tabs[1], text="Submit", width=20, anchor='center', command=lambda: app_btn_manager(4))
 
     win_balance_display = tabs_canvas[1].create_window(0, 0, anchor='center', window=entry_balance)
