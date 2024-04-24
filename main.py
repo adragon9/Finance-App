@@ -63,15 +63,18 @@ def app_btn_manager(event_id):
         # Create user event
     elif event_id == 2:
         status = cur_user.create_user()
-        if cur_user.get_current_user() is not None and cur_user.get_current_password() is not None:
-            if status and cur_user.get_current_user() is not None:
-                tabs_canvas[0].itemconfig(txt_user_info1, text=str_success_create)
-                root.after(3000, lambda: revert_text(tabs_canvas[0], txt_user_info1))
-            elif not status and cur_user.get_current_user() is not None:
-                tabs_canvas[0].itemconfig(txt_user_info1, text=str_fail_create)
-                root.after(3000, lambda: revert_text(tabs_canvas[0], txt_user_info1))
+        print(status)
+        if status:
+            tabs_canvas[0].itemconfig(txt_user_info1, text=str_success_create)
+            root.after(3000, lambda: revert_text(tabs_canvas[0], txt_user_info1))
+        elif not status and cur_user.get_current_user() is None:
+            tabs_canvas[0].itemconfig(txt_user_info1, text=f"{str_blank}: USERNAME")
+            root.after(3000, lambda: revert_text(tabs_canvas[0], txt_user_info1))
+        elif not status and cur_user.get_current_password() is None:
+            tabs_canvas[0].itemconfig(txt_user_info1, text=f"{str_blank}: Password")
+            root.after(3000, lambda: revert_text(tabs_canvas[0], txt_user_info1))
         else:
-            tabs[0].itemconfig(txt_user_info1, text=str_blank)
+            tabs_canvas[0].itemconfig(txt_user_info1, text=str_fail_create)
             root.after(3000, lambda: revert_text(tabs_canvas[0], txt_user_info1))
 
     # Logout event
@@ -80,6 +83,14 @@ def app_btn_manager(event_id):
         Window.saved_dat_user = None
         Window.saved_dat_pass = None
         Window.saved_dat_balance = None
+
+        # Clear ALL entry boxes on logout
+        entry_username.delete(0, tk.END)
+        entry_pass.delete(0, tk.END)
+        entry_balance.delete(0, tk.END)
+        entry_expense_cat.delete(0, tk.END)
+        entry_expense_desc.delete("1.0", "end-1c")
+
         # print(Window.saved_dat_user, Window.saved_dat_pass, Window.saved_dat_balance)
         btn_login.configure(state="normal")
         btn_create_user.configure(state="normal")
@@ -87,7 +98,7 @@ def app_btn_manager(event_id):
             logouts[i].configure(state='disabled')
         hide_tabs()
         tabs_canvas[0].itemconfig(txt_splash, text=str_splash)
-
+    # Submit user balance
     elif event_id == 4:
         # print(Window.saved_dat_user, Window.saved_dat_pass) <-- used to check if the username and pass was being saved
         if Window.current_user is not None:
@@ -107,7 +118,7 @@ def app_btn_manager(event_id):
                 root.after(3000, lambda: revert_text(tabs_canvas[1], txt_user_info2))
         else:
             print("No user logged in")
-
+    # Submit category
     elif event_id == 5:
         Window.saved_dat_expense_desc = entry_expense_desc.get("1.0", "end-1c")
         Window.saved_dat_expense_cat = Window.dat_expense_cat.get()
@@ -118,6 +129,7 @@ def app_btn_manager(event_id):
         if Window.saved_dat_expense_cat != '':
             print(Window.saved_dat_expense_cat, Window.saved_dat_expense_desc)
             Window.current_user.create_expense(Window.saved_dat_expense_cat, Window.saved_dat_expense_desc)
+
 
 """
 Ensures that all elements stay in relative positions when window size is changed
@@ -301,7 +313,8 @@ if __name__ == "__main__":
     # Tab 3 Content
     entry_expense_cat = tk.Entry(tabs[2], width=40, font=("Candara Light", 12), textvariable=Window.dat_expense_cat)
     entry_expense_desc = tk.Text(tabs[2], wrap=tk.WORD, font=("Candara Light", 12), height=5, width=40)
-    btn_sbmt_expense = tk.Button(tabs[2], width=20, font=("Candara Light", 12), text="Submit", command=lambda: app_btn_manager(5))
+    btn_sbmt_expense = tk.Button(tabs[2], width=20, font=("Candara Light", 12), text="Submit",
+                                 command=lambda: app_btn_manager(5))
 
     win_expense_cat = tabs_canvas[2].create_window(0, 0, anchor='s', window=entry_expense_cat)
     win_expense_desc = tabs_canvas[2].create_window(0, 0, anchor='n', window=entry_expense_desc)

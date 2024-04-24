@@ -53,9 +53,11 @@ class User:
             rows = cursor.fetchall()
             for row in rows:
                 print(row)
-
-        connection.close()
-        return True
+            connection.close()
+            return True
+        else:
+            connection.close()
+            return False
 
     def create_expense(self, expense_cat, expense_desc):
         if self.username != '':
