@@ -44,8 +44,21 @@ def app_btn_manager(event_id):
             Window.current_user = cur_user
             Window.saved_dat_user = Window.dat_user.get()
             Window.saved_dat_pass = Window.dat_password.get()
+            # Clear the entry boxes
+            entry_username.delete(0, tk.END)
+            entry_pass.delete(0, tk.END)
+            # Disable elements that are unwanted while logged in
             btn_login.configure(state="disabled")
             btn_create_user.configure(state="disabled")
+            entry_username.configure(state="disabled")
+            entry_pass.configure(state="disabled")
+            tabs_canvas[0].itemconfigure(win_login_display, state="hidden")
+            tabs_canvas[0].itemconfigure(win_create_user_display, state="hidden")
+            tabs_canvas[0].itemconfigure(win_username_display, state="hidden")
+            tabs_canvas[0].itemconfigure(win_pass_display, state="hidden")
+            tabs_canvas[0].itemconfigure(txt_username, state="hidden")
+            tabs_canvas[0].itemconfigure(txt_password, state="hidden")
+            tabs_canvas[0].itemconfigure(txt_disclaimer, state="hidden")
             # This enables all the logout buttons
             for i in range(0, num_tabs):
                 logouts[i].configure(state='normal')
@@ -53,8 +66,6 @@ def app_btn_manager(event_id):
             show_tabs()
             tabs_canvas[0].itemconfig(txt_splash, text=f"Welcome, {cur_user.get_current_user()}")
             tabs_canvas[0].itemconfig(txt_user_info1, text=str_success)
-            entry_username.delete(0, tk.END)
-            entry_pass.delete(0, tk.END)
             root.after(3000, lambda: revert_text(tabs_canvas[0], txt_user_info1))
         else:
             tabs_canvas[0].itemconfig(txt_user_info1, text=str_fail_login)
@@ -105,6 +116,15 @@ def app_btn_manager(event_id):
         # print(Window.saved_dat_user, Window.saved_dat_pass, Window.saved_dat_balance)
         btn_login.configure(state="normal")
         btn_create_user.configure(state="normal")
+        entry_username.configure(state="normal")
+        entry_pass.configure(state="normal")
+        tabs_canvas[0].itemconfigure(win_login_display, state="normal")
+        tabs_canvas[0].itemconfigure(win_create_user_display, state="normal")
+        tabs_canvas[0].itemconfigure(win_username_display, state="normal")
+        tabs_canvas[0].itemconfigure(win_pass_display, state="normal")
+        tabs_canvas[0].itemconfigure(txt_username, state="normal")
+        tabs_canvas[0].itemconfigure(txt_password, state="normal")
+        tabs_canvas[0].itemconfigure(txt_disclaimer, state="normal")
         for i in range(0, num_tabs):
             logouts[i].configure(state='disabled')
         hide_tabs()
