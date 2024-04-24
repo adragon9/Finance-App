@@ -65,39 +65,39 @@ class User:
         self.pass_entry.delete(0, tk.END)
         return True
 
+    # Modify the login method to return True on successful login, and False otherwise
     def login(self):
-        connection = sqlite3.connect("Users.db")
-        cursor = connection.cursor()
+        try:
+            connection = sqlite3.connect("Users.db")
+            cursor = connection.cursor()
 
-        if self.username == '':
-            self.username = None
-        elif not self.username.isalnum():
-            self.username = None
+            if self.username == '' or self.password == '':
+                print("Invalid username or password")
+                return False
 
-        if self.password == '':
-            self.password = None
-
-        if self.username is not None and self.password is not None:
-            cursor.execute((f"""SELECT
-            user_name, 
-            password 
-            FROM users 
-            WHERE user_name = ? AND password = ?"""), (self.username, self.password))
+            cursor.execute("""
+                SELECT user_name, password 
+                FROM users 
+                WHERE user_name = ? AND password = ?""", (self.username, self.password))
 
             check = cursor.fetchone()
+
             if check:
-                print(f"found match: Name {check[0]},Password {check[1]}")
-                connection.close()
+                print(f"Login successful for user: {self.username}")
                 self.user_entry.delete(0, tk.END)
                 self.pass_entry.delete(0, tk.END)
+                connection.close()
                 return True
             else:
-                self.username = None
-                print("no match")
+                print("Invalid username or password")
                 connection.close()
-                self.user_entry.delete(0, tk.END)
-                self.pass_entry.delete(0, tk.END)
                 return False
+
+        except sqlite3.Error as e:
+            print("SQLite error:", e)
+            return False
+
+
 
     def get_current_user(self):
         return self.username

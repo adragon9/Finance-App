@@ -24,14 +24,11 @@ def revert_text(canvas, text):
 
 
 def app_btn_manager(event_id):
-    # Needed so that the entire program has access to the current active use.
-    # This is due to a lack of foresight as every time this event manager got called the cur_user var got overwritten
     global saved_user
     cur_user = user.User(entry_username.get(), entry_pass.get(), entry_username, entry_pass)
-    # Login button pressed on home tab
+    
     if event_id == 1:
-        cur_user.login()
-        if cur_user.get_current_user() is not None:
+        if cur_user.login():
             show_tabs()
             tabs_canvas[0].itemconfig(txt_splash, text=f"Welcome, {cur_user.get_current_user()}")
             btn_login.configure(state="disabled")
@@ -41,13 +38,10 @@ def app_btn_manager(event_id):
             tabs_canvas[0].itemconfig(txt_user_info1, text=str_success)
             root.after(3000, lambda: revert_text(tabs_canvas[0], txt_user_info1))
             saved_user = cur_user
-            # print("saved_user = " + saved_user.get_current_user())
         else:
             tabs_canvas[0].itemconfig(txt_user_info1, text=str_fail_login)
             root.after(3000, lambda: revert_text(tabs_canvas[0], txt_user_info1))
-            # print("Not logged in")
 
-    # New user button pressed on home tab
     elif event_id == 2:
         status = cur_user.create_user()
         if cur_user.get_current_user() is not None and cur_user.get_current_password() is not None:
@@ -61,7 +55,6 @@ def app_btn_manager(event_id):
             tabs[0].itemconfig(txt_user_info1, text=str_blank)
             root.after(3000, lambda: revert_text(tabs_canvas[0], txt_user_info1))
 
-    # Logout button pressed on home tab
     elif event_id == 3:
         tabs_canvas[0].itemconfig(txt_splash, text=str_splash)
         btn_login.configure(state="normal")
@@ -69,17 +62,22 @@ def app_btn_manager(event_id):
         for i in range(0, num_tabs):
             logouts[i].configure(state='disabled')
         hide_tabs()
-        # Wanted to make sure that in when the logout is pressed that variable gets cleared
         saved_user = None
+        
+        #clears entry balance text field
+        entry_balance.delete(0, tk.END)
 
     elif event_id == 4:
-        balance = saved_user.set_balance(entry_balance.get())
-        if balance:
-            tabs_canvas[1].itemconfig(txt_user_info2, text=f"{str_success_balance}{saved_user.get_balance():.2f}")
-            root.after(3000, lambda: revert_text(tabs_canvas[1], txt_user_info2))
+        if saved_user is not None:
+            balance = saved_user.set_balance(entry_balance.get())
+            if balance:
+                tabs_canvas[1].itemconfig(txt_user_info2, text=f"{str_success_balance}${saved_user.get_balance():,.2f}")
+                root.after(3000, lambda: revert_text(tabs_canvas[1], txt_user_info2))
+            else:
+                tabs_canvas[1].itemconfig(txt_user_info2, text=f"{str_fail_balance}${saved_user.get_balance():,.2f}")
+                root.after(3000, lambda: revert_text(tabs_canvas[1], txt_user_info2))
         else:
-            tabs_canvas[1].itemconfig(txt_user_info2, text=f"{str_fail_balance}{saved_user.get_balance():.2f}")
-            root.after(3000, lambda: revert_text(tabs_canvas[1], txt_user_info2))
+            print("No user logged in")
 
 
 """
