@@ -67,12 +67,23 @@ def app_btn_manager(event_id):
         if status:
             tabs_canvas[0].itemconfig(txt_user_info1, text=str_success_create)
             root.after(3000, lambda: revert_text(tabs_canvas[0], txt_user_info1))
-        elif not status and cur_user.get_current_user() is None:
-            tabs_canvas[0].itemconfig(txt_user_info1, text=f"{str_blank}: USERNAME")
+
+        elif not status and cur_user.get_current_user() is None and cur_user.get_current_password() is None:
+            tabs_canvas[0].itemconfig(txt_user_info1, text=f"{str_blank}: BOTH")
             root.after(3000, lambda: revert_text(tabs_canvas[0], txt_user_info1))
+
         elif not status and cur_user.get_current_password() is None:
             tabs_canvas[0].itemconfig(txt_user_info1, text=f"{str_blank}: Password")
             root.after(3000, lambda: revert_text(tabs_canvas[0], txt_user_info1))
+
+        elif not status and cur_user.get_current_user() is None:
+            tabs_canvas[0].itemconfig(txt_user_info1, text=f"{str_blank}: USERNAME")
+            root.after(3000, lambda: revert_text(tabs_canvas[0], txt_user_info1))
+
+        elif not status and cur_user.get_current_password() is None:
+            tabs_canvas[0].itemconfig(txt_user_info1, text=f"{str_blank}: Password")
+            root.after(3000, lambda: revert_text(tabs_canvas[0], txt_user_info1))
+
         else:
             tabs_canvas[0].itemconfig(txt_user_info1, text=str_fail_create)
             root.after(3000, lambda: revert_text(tabs_canvas[0], txt_user_info1))
