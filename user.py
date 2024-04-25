@@ -26,6 +26,7 @@ class User:
             self.password = None
 
         if self.username is not None and self.password is not None:
+            # Create ALL necessary tables here
             cursor.execute("""
             CREATE TABLE IF NOT EXISTS users(
             user_name TEXT PRIMARY KEY,
@@ -33,6 +34,23 @@ class User:
             password TEXT,
             balance MONEY)""")
 
+            cursor.execute("""CREATE TABLE IF NOT EXISTS expense_categories(
+            category_name TEXT,
+            user_name TEXT,
+            category_date DATE,
+            category_desc TEXT,
+            PRIMARY KEY(category_name, user_name),
+            FOREIGN KEY (user_name) REFERENCES users(user_name))""")
+
+            cursor.execute("""
+            CREATE TABLE IF NOT EXISTS expenses(
+            expense_id INTEGER PRIMARY KEY,
+            category_name TEXT,
+            user_name TEXT,
+            expense_amount MONEY,
+            expense_added DATE,
+            FOREIGN KEY(user_name) REFERENCES users(user_name),
+            FOREIGN KEY(category_name) REFERENCES expense_categories(category_name))""")
             date = dt.datetime.now()
 
             try:
@@ -64,14 +82,6 @@ class User:
             connection = sqlite3.connect('Users.db')
             cursor = connection.cursor()
             date = datetime.datetime.now()
-
-            cursor.execute("""CREATE TABLE IF NOT EXISTS expense_categories(
-            category_name TEXT,
-            user_name TEXT,
-            category_date DATE,
-            category_desc TEXT,
-            PRIMARY KEY(category_name, user_name),
-            FOREIGN KEY (user_name) REFERENCES users(user_name))""")
             try:
                 cursor.execute("""INSERT INTO expense_categories(
                 category_name,
@@ -93,16 +103,6 @@ class User:
         connection = sqlite3.connect('Users.db')
         cursor = connection.cursor()
         date = datetime.datetime.now()
-
-        cursor.execute("""
-        CREATE TABLE IF NOT EXISTS expenses(
-        expense_id INTEGER PRIMARY KEY,
-        category_name TEXT,
-        user_name TEXT,
-        expense_amount MONEY,
-        expense_added DATE,
-        FOREIGN KEY(user_name) REFERENCES users(user_name),
-        FOREIGN KEY(category_name) REFERENCES expense_categories(category_name))""")
 
         try:
             cursor.execute("""INSERT INTO expenses(
