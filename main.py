@@ -5,6 +5,7 @@ from tkinter import ttk
 import TabManager
 import user
 from AppData import Window
+from strings import Strings
 
 with open("config.txt") as strings:
     for line in strings:
@@ -65,10 +66,10 @@ def app_btn_manager(event_id):
             # Inform user, update displays, clear inputs
             show_tabs()
             tabs_canvas[0].itemconfig(txt_splash, text=f"Welcome, {cur_user.get_current_user()}")
-            tabs_canvas[0].itemconfig(txt_user_info1, text=str_success)
+            tabs_canvas[0].itemconfig(txt_user_info1, text=Strings.success)
             root.after(3000, lambda: revert_text(tabs_canvas[0], txt_user_info1))
         else:
-            tabs_canvas[0].itemconfig(txt_user_info1, text=str_fail_login)
+            tabs_canvas[0].itemconfig(txt_user_info1, text=Strings.fail_login)
             root.after(3000, lambda: revert_text(tabs_canvas[0], txt_user_info1))
 
         # Create user event
@@ -76,27 +77,27 @@ def app_btn_manager(event_id):
         status = cur_user.create_user()
         print(status)
         if status:
-            tabs_canvas[0].itemconfig(txt_user_info1, text=str_success_create)
+            tabs_canvas[0].itemconfig(txt_user_info1, text=Strings.success_create)
             root.after(3000, lambda: revert_text(tabs_canvas[0], txt_user_info1))
 
         elif not status and cur_user.get_current_user() is None and cur_user.get_current_password() is None:
-            tabs_canvas[0].itemconfig(txt_user_info1, text=f"{str_blank}: BOTH")
+            tabs_canvas[0].itemconfig(txt_user_info1, text=f"{Strings.blank}: BOTH")
             root.after(3000, lambda: revert_text(tabs_canvas[0], txt_user_info1))
 
         elif not status and cur_user.get_current_password() is None:
-            tabs_canvas[0].itemconfig(txt_user_info1, text=f"{str_blank}: Password")
+            tabs_canvas[0].itemconfig(txt_user_info1, text=f"{Strings.blank}: Password")
             root.after(3000, lambda: revert_text(tabs_canvas[0], txt_user_info1))
 
         elif not status and cur_user.get_current_user() is None:
-            tabs_canvas[0].itemconfig(txt_user_info1, text=f"{str_blank}: USERNAME")
+            tabs_canvas[0].itemconfig(txt_user_info1, text=f"{Strings.blank}: USERNAME")
             root.after(3000, lambda: revert_text(tabs_canvas[0], txt_user_info1))
 
         elif not status and cur_user.get_current_password() is None:
-            tabs_canvas[0].itemconfig(txt_user_info1, text=f"{str_blank}: Password")
+            tabs_canvas[0].itemconfig(txt_user_info1, text=f"{Strings.blank}: Password")
             root.after(3000, lambda: revert_text(tabs_canvas[0], txt_user_info1))
 
         else:
-            tabs_canvas[0].itemconfig(txt_user_info1, text=str_fail_create)
+            tabs_canvas[0].itemconfig(txt_user_info1, text=Strings.fail_create)
             root.after(3000, lambda: revert_text(tabs_canvas[0], txt_user_info1))
 
     # Logout event
@@ -128,7 +129,7 @@ def app_btn_manager(event_id):
         for k in range(0, num_tabs):
             logouts[k].configure(state='disabled')
         hide_tabs()
-        tabs_canvas[0].itemconfig(txt_splash, text=str_splash)
+        tabs_canvas[0].itemconfig(txt_splash, text=Strings.splash)
     # Submit user balance
     elif event_id == 4:
         # print(Window.saved_dat_user, Window.saved_dat_pass) <-- used to check if the username and pass was being saved
@@ -137,13 +138,13 @@ def app_btn_manager(event_id):
             balance = Window.current_user.set_balance(entry_balance.get())
             if balance:
                 tabs_canvas[1].itemconfig(txt_user_info2,
-                                          text=f"{str_success_balance}${Window.current_user.get_balance():,.2f}")
+                                          text=f"{Strings.success_balance}${Window.current_user.get_balance():,.2f}")
                 Window.saved_dat_balance = Window.current_user.get_balance()
                 entry_balance.delete(0, tk.END)
                 root.after(3000, lambda: revert_text(tabs_canvas[1], txt_user_info2))
             else:
                 tabs_canvas[1].itemconfig(txt_user_info2,
-                                          text=f"{str_fail_balance}${Window.current_user.get_balance():,.2f}")
+                                          text=f"{Strings.fail_balance}${Window.current_user.get_balance():,.2f}")
                 Window.saved_dat_balance = Window.current_user.get_balance()
                 entry_balance.delete(0, tk.END)
                 root.after(3000, lambda: revert_text(tabs_canvas[1], txt_user_info2))
@@ -196,18 +197,18 @@ def window_adjustment(event):
 
     elif cur_tab == tab_names[1]:
         # print('updating 2')
-        tabs_canvas[1].coords(txt_balance_des, tabs_canvas[1].coords(headers[1])[0],
-                              tabs_canvas[1].coords(headers[1])[1] + 80)
+        tabs_canvas[1].coords(txt_balance_des, tabs_canvas[1].coords(headers[1])[0], tabs_canvas[1].coords(headers[1])[1] + 80)
         tabs_canvas[1].coords(win_balance_display, tabs_w[1] / 2, tabs_h[1] / 2)
-        tabs_canvas[1].coords(win_sbmt_bal_display, tabs_canvas[1].coords(win_balance_display)[0],
-                              tabs_canvas[1].coords(win_balance_display)[1] + 45)
-        tabs_canvas[1].coords(txt_user_info2, tabs_canvas[1].coords(win_sbmt_bal_display)[0],
-                              tabs_canvas[1].coords(win_sbmt_bal_display)[1] + 45)
+        tabs_canvas[1].coords(win_sbmt_bal_display, tabs_canvas[1].coords(win_balance_display)[0], tabs_canvas[1].coords(win_balance_display)[1] + 45)
+        tabs_canvas[1].coords(txt_user_info2, tabs_canvas[1].coords(win_sbmt_bal_display)[0], tabs_canvas[1].coords(win_sbmt_bal_display)[1] + 45)
 
     elif cur_tab == tab_names[2]:
         tabs_canvas[2].coords(win_expense_cat, tabs_w[2] / 2, tabs_h[2] / 2)
-        tabs_canvas[2].coords(win_expense_desc, tabs_w[2] / 2, tabs_canvas[2].coords(win_expense_cat)[1] + 10)
+        tabs_canvas[2].coords(txt_tagger_desc, tabs_canvas[2].coords(headers[2])[0], tabs_canvas[2].coords(headers[2])[1] + 80)
+        tabs_canvas[2].coords(win_expense_desc, tabs_w[2] / 2, tabs_canvas[2].coords(win_expense_cat)[1] + 20)
         tabs_canvas[2].coords(win_sbmt_expense, tabs_w[2] / 2, tabs_h[2] - 10)
+        tabs_canvas[2].coords(txt_expense_cat, entry_expense_cat.winfo_x() - 10, entry_expense_cat.winfo_y() + 10)
+        tabs_canvas[2].coords(txt_expense_desc, tabs_canvas[2].coords(txt_expense_cat)[0], entry_expense_desc.winfo_y() + 10)
 
 
 # The logout button was getting a focus box for some reason, this fixed it.
@@ -230,8 +231,8 @@ def show_tabs():
 if __name__ == "__main__":
     # This is a master control for the number and names of tabs
     # >>> THE NUMBER OF TABS AND THE NUMBER OF STRINGS IN tab_names MUST MATCH <<<
-    num_tabs = 3
-    tab_names = ["Home", "Set Balance", "Expenses"]
+    num_tabs = 4
+    tab_names = ["Home", "Set Balance", "Expense Tagger", "Add Expense"]
     # Needed arrays
     tabs_w = []
     tabs_h = []
@@ -275,22 +276,9 @@ if __name__ == "__main__":
 
     # Fixed variables for text and labels
     # I have this here so that we can easily change elements as needed
-    str_title = "Finance Tracker"
-    str_splash = "WELCOME TO THE APPLICATION"
-    str_disclaimer = "Make sure to write down your password, editing has not been implemented."
-    str_balance_desc = "You may manually set your balance here.\nNOTE: THIS WILL OVERWRITE YOUR PREVIOUS BALANCE."
-    str_success_create = "User created!"
-    str_fail_login = "Match not found login failed"
-    str_success = "Login successful"
-    str_blank = "Entry boxes not filled out"
-    str_success_balance = "You successfully set your balance too: "
-    str_fail_balance = "Your balance input was not valid balance set to: "
-    str_fail_create = "User already exists or some other error has occurred user not created."
-    str_username = "Username"
-    str_password = "Password"
 
     # Window Configuration
-    root.title(str_title)
+    root.title(Strings.title)
     root.geometry(f"{win_w}x{win_h}")
     root.minsize(win_w, win_h)
 
@@ -306,16 +294,16 @@ if __name__ == "__main__":
         tabs.append(obj_tabs[i].get_tab())
         tabs_canvas.append(obj_tabs[i].get_canvas())
         # Common element instantiation
-        headers.append(tabs_canvas[i].create_text(0, 0, anchor='n', font=("Candara", 40), text=str_title))
+        headers.append(tabs_canvas[i].create_text(0, 0, anchor='n', font=("Candara", 40), text=Strings.title))
         logouts.append(
             tk.Button(tabs[i], text="Logout", state="disabled", width=20, command=lambda: app_btn_manager(3)))
         logouts_windows.append(tabs_canvas[i].create_window(0, 0, anchor='se', window=logouts[i]))
 
     # Tab 1 content
-    txt_splash = tabs_canvas[0].create_text(0, 0, anchor='n', font=("Candara Light", 36), text=str_splash)
-    txt_disclaimer = tabs_canvas[0].create_text(0, 0, anchor='n', font=("Candara Light", 10), text=str_disclaimer)
-    txt_username = tabs_canvas[0].create_text(0, 0, anchor='n', font=("Candara Light", 12), text=str_username)
-    txt_password = tabs_canvas[0].create_text(0, 0, anchor='n', font=("Candara Light", 12), text=str_password)
+    txt_splash = tabs_canvas[0].create_text(0, 0, anchor='n', font=("Candara Light", 36), text=Strings.splash)
+    txt_disclaimer = tabs_canvas[0].create_text(0, 0, anchor='n', font=("Candara Light", 10), text=Strings.disclaimer)
+    txt_username = tabs_canvas[0].create_text(0, 0, anchor='n', font=("Candara Light", 12), text=Strings.username)
+    txt_password = tabs_canvas[0].create_text(0, 0, anchor='n', font=("Candara Light", 12), text=Strings.password)
     txt_user_info1 = tabs_canvas[0].create_text(0, 0, anchor='n', font=("Candara Light", 12), text='')
     entry_username = tk.Entry(tabs[0], width=40, font=("Candara Light", 12), textvariable=Window.dat_user)
     entry_pass = tk.Entry(tabs[0], show="*", width=40, font=("Candara Light", 12), textvariable=Window.dat_password)
@@ -331,8 +319,7 @@ if __name__ == "__main__":
     # >>> Tab 1 Content END <<<
 
     # Tab 2 Content
-    txt_balance_des = tabs_canvas[1].create_text(0, 0, anchor='n', font=("Candara Light", 12), justify='center',
-                                                 text=str_balance_desc)
+    txt_balance_des = tabs_canvas[1].create_text(0, 0, anchor='n', font=("Candara Light", 12), justify='center', text=Strings.balance_desc)
     txt_user_info2 = tabs_canvas[1].create_text(0, 0, anchor='n', font=("Candara Light", 12), text='')
     entry_balance = tk.Entry(tabs[1], width=40, font=("Candara Light", 12), textvariable=Window.dat_balance)
     btn_sbmt_bal = tk.Button(tabs[1], text="Submit", width=20, anchor='center', command=lambda: app_btn_manager(4))
@@ -344,10 +331,12 @@ if __name__ == "__main__":
     # Tab 3 Content
     entry_expense_cat = tk.Entry(tabs[2], width=40, font=("Candara Light", 12), textvariable=Window.dat_expense_cat)
     entry_expense_desc = tk.Text(tabs[2], wrap=tk.WORD, font=("Candara Light", 12), height=5, width=40)
-    btn_sbmt_expense = tk.Button(tabs[2], width=20, font=("Candara Light", 12), text="Submit",
-                                 command=lambda: app_btn_manager(5))
+    btn_sbmt_expense = tk.Button(tabs[2], width=20, font=("Candara Light", 12), text="Submit", command=lambda: app_btn_manager(5))
+    txt_tagger_desc = tabs_canvas[2].create_text(0, 0, anchor='center', font=("Candara Light", 12), justify='center', text=Strings.expense_category_desc)
+    txt_expense_cat = tabs_canvas[2].create_text(0, 0, anchor='e', font=("Candara Light", 12), justify='center', text=Strings.cat)
+    txt_expense_desc = tabs_canvas[2].create_text(0, 0, anchor='e', font=("Candara Light", 12), justify='center', text=Strings.cat_desc)
 
-    win_expense_cat = tabs_canvas[2].create_window(0, 0, anchor='s', window=entry_expense_cat)
+    win_expense_cat = tabs_canvas[2].create_window(0, 0, anchor='center', window=entry_expense_cat)
     win_expense_desc = tabs_canvas[2].create_window(0, 0, anchor='n', window=entry_expense_desc)
     win_sbmt_expense = tabs_canvas[2].create_window(0, 0, anchor='s', window=btn_sbmt_expense)
     # >>>Tab 3 Content End
