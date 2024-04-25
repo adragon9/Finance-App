@@ -89,6 +89,36 @@ class User:
         else:
             return False
 
+    def add_expense(self, expense_cat, expense_amount):
+        connection = sqlite3.connect('Users.db')
+        cursor = connection.cursor()
+        date = datetime.datetime.now()
+
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS expenses(
+        expense_id INTEGER PRIMARY KEY,
+        category_name TEXT,
+        user_name TEXT,
+        expense_amount MONEY,
+        expense_added DATE,
+        FOREIGN KEY(user_name) REFERENCES users(user_name),
+        FOREIGN KEY(category_name) REFERENCES expense_categories(category_name))""")
+
+        try:
+            cursor.execute("""INSERT INTO expenses(
+            category_name,
+            user_name,
+            expense_amount,
+            expense_added) VALUE(?, ?, ?, ?""", (expense_cat, self.username, expense_amount, date))
+        except sqlite3.IntegrityError:
+            print("ID EXISTS")
+            connection.close()
+            return False
+
+        connection.commit()
+        connection.close()
+        return True
+
     # Modify the login method to return True on successful login, and False otherwise
     def login(self):
         try:

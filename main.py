@@ -34,6 +34,26 @@ def data_backup():
     connection.close()
 
 
+def get_categories(username):
+    connection = sqlite3.connect('Users.db')
+    cursor = connection.cursor()
+
+    cursor.execute("""
+    SELECT category_name 
+    FROM expense_categories
+    WHERE user_name = ?""", username)
+
+    fetch = cursor.fetchall()
+    categories = []
+    for category in fetch:
+        categories.append(category[0])
+    return categories
+
+
+def dropdown_control(*args):
+    print(drp_cats.get())
+
+
 def app_btn_manager(event_id):
     # Needed so that the entire program has access to the current active use.
     # This is due to a lack of foresight as every time this event manager got called the cur_user var got overwritten
@@ -45,6 +65,8 @@ def app_btn_manager(event_id):
             Window.current_user = cur_user
             Window.saved_dat_user = Window.dat_user.get()
             Window.saved_dat_pass = Window.dat_password.get()
+            Window.dat_dropdown_categories = get_categories(Window.saved_dat_user)
+            drp_cats.configure(values=Window.dat_dropdown_categories)
             # Clear the entry boxes
             entry_username.delete(0, tk.END)
             entry_pass.delete(0, tk.END)
@@ -73,6 +95,7 @@ def app_btn_manager(event_id):
             root.after(3000, lambda: revert_text(tabs_canvas[0], txt_user_info1))
 
         # Create user event
+    # Create user event
     elif event_id == 2:
         status = cur_user.create_user()
         print(status)
@@ -99,7 +122,6 @@ def app_btn_manager(event_id):
         else:
             tabs_canvas[0].itemconfig(txt_user_info1, text=Strings.fail_create)
             root.after(3000, lambda: revert_text(tabs_canvas[0], txt_user_info1))
-
     # Logout event
     elif event_id == 3:
         # Clear saved user and password
@@ -161,6 +183,12 @@ def app_btn_manager(event_id):
         if Window.saved_dat_expense_cat != '':
             print(Window.saved_dat_expense_cat, Window.saved_dat_expense_desc)
             Window.current_user.create_expense(Window.saved_dat_expense_cat, Window.saved_dat_expense_desc)
+            # Update the category dropdown box
+            Window.dat_dropdown_categories = get_categories(Window.saved_dat_user)
+            drp_cats.configure(values=Window.dat_dropdown_categories)
+    # Test event
+    elif event_id == 6:
+        pass
 
 
 """
@@ -183,32 +211,40 @@ def window_adjustment(event):
     # Instead of updating all elements it only updates the active tabs elements.
     cur_tab = tabControl.tab(tabControl.select(), "text")
     if cur_tab == tab_names[0]:
-        # print('updating 1')
+        t = 0
         # Readjusts elements to stay in the same position no matter window size
-        tabs_canvas[0].coords(txt_splash, tabs_w[0] / 2, tabs_canvas[0].coords(headers[0])[1] + 80)
-        tabs_canvas[0].coords(txt_disclaimer, tabs_w[0] * .5, tabs_canvas[0].coords(txt_splash)[1] + 60)
-        tabs_canvas[0].coords(win_login_display, tabs_w[0] / 2, tabs_h[0] * .8)
-        tabs_canvas[0].coords(win_create_user_display, tabs_w[0] / 2, btn_login.winfo_y() + 45)
-        tabs_canvas[0].coords(txt_username, entry_username.winfo_x() - 40, entry_username.winfo_y())
-        tabs_canvas[0].coords(win_username_display, tabs_w[0] / 2, tabs_h[0] * .5)
-        tabs_canvas[0].coords(txt_password, entry_pass.winfo_x() - 40, entry_pass.winfo_y())
-        tabs_canvas[0].coords(win_pass_display, tabs_w[0] / 2, entry_username.winfo_y() + 30)
-        tabs_canvas[0].coords(txt_user_info1, tabs_w[0] / 2, entry_username.winfo_y() + 60)
+        tabs_canvas[t].coords(txt_splash, tabs_w[t] / 2, tabs_canvas[t].coords(headers[t])[1] + 80)
+        tabs_canvas[t].coords(txt_disclaimer, tabs_w[t] * .5, tabs_canvas[t].coords(txt_splash)[1] + 60)
+        tabs_canvas[t].coords(win_login_display, tabs_w[t] / 2, tabs_h[t] * .8)
+        tabs_canvas[t].coords(win_create_user_display, tabs_w[t] / 2, btn_login.winfo_y() + 45)
+        tabs_canvas[t].coords(txt_username, entry_username.winfo_x() - 40, entry_username.winfo_y())
+        tabs_canvas[t].coords(win_username_display, tabs_w[t] / 2, tabs_h[t] * .5)
+        tabs_canvas[t].coords(txt_password, entry_pass.winfo_x() - 40, entry_pass.winfo_y())
+        tabs_canvas[t].coords(win_pass_display, tabs_w[t] / 2, entry_username.winfo_y() + 30)
+        tabs_canvas[t].coords(txt_user_info1, tabs_w[t] / 2, entry_username.winfo_y() + 60)
 
     elif cur_tab == tab_names[1]:
-        # print('updating 2')
-        tabs_canvas[1].coords(txt_balance_des, tabs_canvas[1].coords(headers[1])[0], tabs_canvas[1].coords(headers[1])[1] + 80)
-        tabs_canvas[1].coords(win_balance_display, tabs_w[1] / 2, tabs_h[1] / 2)
-        tabs_canvas[1].coords(win_sbmt_bal_display, tabs_canvas[1].coords(win_balance_display)[0], tabs_canvas[1].coords(win_balance_display)[1] + 45)
-        tabs_canvas[1].coords(txt_user_info2, tabs_canvas[1].coords(win_sbmt_bal_display)[0], tabs_canvas[1].coords(win_sbmt_bal_display)[1] + 45)
+        t = 1
+        tabs_canvas[t].coords(txt_balance_des, tabs_canvas[t].coords(headers[t])[0], tabs_canvas[t].coords(headers[t])[1] + 80)
+        tabs_canvas[t].coords(win_balance_display, tabs_w[t] / 2, tabs_h[t] / 2)
+        tabs_canvas[t].coords(win_sbmt_bal_display, tabs_canvas[t].coords(win_balance_display)[0], tabs_canvas[t].coords(win_balance_display)[1] + 45)
+        tabs_canvas[t].coords(txt_user_info2, tabs_canvas[t].coords(win_sbmt_bal_display)[0], tabs_canvas[t].coords(win_sbmt_bal_display)[1] + 45)
 
     elif cur_tab == tab_names[2]:
-        tabs_canvas[2].coords(win_expense_cat, tabs_w[2] / 2, tabs_h[2] / 2)
-        tabs_canvas[2].coords(txt_tagger_desc, tabs_canvas[2].coords(headers[2])[0], tabs_canvas[2].coords(headers[2])[1] + 80)
-        tabs_canvas[2].coords(win_expense_desc, tabs_w[2] / 2, tabs_canvas[2].coords(win_expense_cat)[1] + 20)
-        tabs_canvas[2].coords(win_sbmt_expense, tabs_w[2] / 2, tabs_h[2] - 10)
-        tabs_canvas[2].coords(txt_expense_cat, entry_expense_cat.winfo_x() - 10, entry_expense_cat.winfo_y() + 10)
-        tabs_canvas[2].coords(txt_expense_desc, tabs_canvas[2].coords(txt_expense_cat)[0], entry_expense_desc.winfo_y() + 10)
+        t = 2
+        tabs_canvas[t].coords(win_expense_cat, tabs_w[t] / 2, tabs_h[t] / 2)
+        tabs_canvas[t].coords(txt_tagger_desc, tabs_canvas[t].coords(headers[t])[0], tabs_canvas[t].coords(headers[t])[1] + 80)
+        tabs_canvas[t].coords(win_expense_desc, tabs_w[t] / 2, tabs_canvas[t].coords(win_expense_cat)[1] + 20)
+        tabs_canvas[t].coords(win_sbmt_expense, tabs_w[t] / 2, tabs_h[t] - 10)
+        tabs_canvas[t].coords(txt_expense_cat, entry_expense_cat.winfo_x() - 10, entry_expense_cat.winfo_y() + 10)
+        tabs_canvas[t].coords(txt_expense_desc, tabs_canvas[t].coords(txt_expense_cat)[0], entry_expense_desc.winfo_y() + 10)
+
+    elif cur_tab == tab_names[3]:
+        t = 3
+        tabs_canvas[t].coords(txt_test, tabs_canvas[t].coords(headers[t])[0], tabs_canvas[t].coords(headers[t])[1] + 80)
+        tabs_canvas[t].coords(win_test, tabs_w[t] / 2, tabs_h[t] / 2)
+        tabs_canvas[t].coords(win_test_btn, tabs_canvas[t].coords(win_test)[0], tabs_canvas[t].coords(win_test)[1] + 45)
+        tabs_canvas[t].coords(win_dropdown_cats, tabs_w[t] / 2, tabs_h[t] - 100)
 
 
 # The logout button was getting a focus box for some reason, this fixed it.
@@ -232,7 +268,7 @@ if __name__ == "__main__":
     # This is a master control for the number and names of tabs
     # >>> THE NUMBER OF TABS AND THE NUMBER OF STRINGS IN tab_names MUST MATCH <<<
     num_tabs = 4
-    tab_names = ["Home", "Set Balance", "Expense Tagger", "Add Expense"]
+    tab_names = ["Home", "Set Balance", "Expense Tagger", "Testing tab"]
     # Needed arrays
     tabs_w = []
     tabs_h = []
@@ -245,7 +281,6 @@ if __name__ == "__main__":
     obj_tabs = []
     tabs = []
     tabs_canvas = []
-
     # These are elements that appear on every page.
     headers = []
     logouts = []
@@ -257,7 +292,6 @@ if __name__ == "__main__":
     Window.dat_password = tk.StringVar()
     Window.dat_balance = tk.StringVar()
     Window.dat_expense_cat = tk.StringVar()
-
     # This is the style sheet for the ttk module
     style = ttk.Style()
     style.theme_create("CustomStyle", parent='classic',
@@ -267,10 +301,18 @@ if __name__ == "__main__":
                                "configure": {"padding": [20, 5],
                                              "background": '#5E819D'},
                                "map": {"background": [("selected", '#6699CC'), ("active", '#9ECFFF')]}
+                           },
+                           "TCombobox": {
+                               "configure": {
+                                   "arrowsize": 10,
+                                   "selectbackground": "white",
+                                   "fieldbackground": "white",
+                                   "selectforeground": "black",
+                                   "arrowanchor": "s",
+                               }
                            }
                        })
     style.theme_use("CustomStyle")
-
     # Save in case I want to see what themes exist
     # print(style.theme_names())
 
@@ -341,6 +383,17 @@ if __name__ == "__main__":
     win_sbmt_expense = tabs_canvas[2].create_window(0, 0, anchor='s', window=btn_sbmt_expense)
     # >>>Tab 3 Content End
 
+    # Tab 4 Content
+    drp_cats = ttk.Combobox(tabs[3], values=Window.dat_dropdown_categories, state='readonly')
+    txt_test = tabs_canvas[3].create_text(0, 0, anchor='n', font=("Candara Light", 12), justify='center', text=Strings.balance_desc)
+    entry_test = tk.Entry(tabs[3], width=40, font=("Candara Light", 12), textvariable=Window.dat_balance)
+    btn_test = tk.Button(tabs[3], text="Submit", width=20, anchor='center', command=lambda: app_btn_manager(6))
+
+    win_test = tabs_canvas[3].create_window(0, 0, anchor='center', window=entry_test)
+    win_test_btn = tabs_canvas[3].create_window(0, 0, anchor='center', window=btn_test)
+    win_dropdown_cats = tabs_canvas[3].create_window(0, 0, anchor='center', window=drp_cats)
+    # >>>Tab 4 Content End
+
     # Add the tabs to the tab controller
     for i in range(0, num_tabs):
         tabControl.add(tabs[i], text=tab_names[i])
@@ -348,6 +401,7 @@ if __name__ == "__main__":
     tabControl.pack(fill=tk.BOTH, expand=True)
     # This is what calls the window adjust definition when the window is configured.
     hide_tabs()
+    drp_cats.bind("<<ComboboxSelected>>", dropdown_control)
     root.bind('<Configure>', window_adjustment)
     tabControl.bind("<<NotebookTabChanged>>", tab_change)
     root.mainloop()

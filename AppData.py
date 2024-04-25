@@ -3,6 +3,9 @@ from dataclasses import dataclass
 
 @dataclass
 class Window:
+    # Categories for the dropdown box
+    dat_dropdown_categories = [""]
+    dat_dropdown_choice = None
     # The current data in the entry box
     dat_user = None
     dat_password = None
