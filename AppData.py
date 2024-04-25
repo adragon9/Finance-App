@@ -1,7 +1,5 @@
 from dataclasses import dataclass
 
-import tkinter as tk
-
 
 @dataclass
 class Window:

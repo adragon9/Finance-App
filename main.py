@@ -60,8 +60,8 @@ def app_btn_manager(event_id):
             tabs_canvas[0].itemconfigure(txt_password, state="hidden")
             tabs_canvas[0].itemconfigure(txt_disclaimer, state="hidden")
             # This enables all the logout buttons
-            for i in range(0, num_tabs):
-                logouts[i].configure(state='normal')
+            for k in range(0, num_tabs):
+                logouts[k].configure(state='normal')
             # Inform user, update displays, clear inputs
             show_tabs()
             tabs_canvas[0].itemconfig(txt_splash, text=f"Welcome, {cur_user.get_current_user()}")
@@ -125,8 +125,8 @@ def app_btn_manager(event_id):
         tabs_canvas[0].itemconfigure(txt_username, state="normal")
         tabs_canvas[0].itemconfigure(txt_password, state="normal")
         tabs_canvas[0].itemconfigure(txt_disclaimer, state="normal")
-        for i in range(0, num_tabs):
-            logouts[i].configure(state='disabled')
+        for k in range(0, num_tabs):
+            logouts[k].configure(state='disabled')
         hide_tabs()
         tabs_canvas[0].itemconfig(txt_splash, text=str_splash)
     # Submit user balance
@@ -217,14 +217,14 @@ def tab_change(event):
 
 def hide_tabs():
     tab_count = tabControl.index('end')
-    for i in range(1, tab_count):
-        tabControl.tab(i, state="hidden")
+    for j in range(1, tab_count):
+        tabControl.tab(j, state="hidden")
 
 
 def show_tabs():
     tab_count = tabControl.index('end')
-    for i in range(1, tab_count):
-        tabControl.tab(i, state="normal")
+    for j in range(1, tab_count):
+        tabControl.tab(j, state="normal")
 
 
 if __name__ == "__main__":
