@@ -1,6 +1,7 @@
 import sqlite3
 import tkinter as tk
 from tkinter import ttk
+print(sqlite3.sqlite_version)
 
 import TabManager
 import user
@@ -28,7 +29,7 @@ def revert_text(canvas, text):
 
 def data_backup():
     connection = sqlite3.connect('Users.db')
-    backup_db = sqlite3.connect(f'Users-backup.db')
+    backup_db = sqlite3.connect('Users-backup.db')
     connection.backup(backup_db)
     backup_db.close()
     connection.close()
@@ -41,7 +42,7 @@ def get_categories(username):
     cursor.execute("""
     SELECT category_name 
     FROM expense_categories
-    WHERE user_name = ?""", username)
+    WHERE user_name = ?""", (username,))
 
     fetch = cursor.fetchall()
     categories = []
