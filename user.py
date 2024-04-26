@@ -192,7 +192,7 @@ class User:
         cursor.execute("""
         SELECT balance
         FROM users
-        WHERE user_name = ?""", self.username)
+        WHERE user_name = ?""", (self.username,))
 
         bal = cursor.fetchone()
         self.balance = bal[0]
