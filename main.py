@@ -1,7 +1,6 @@
 import sqlite3
 import tkinter as tk
 from tkinter import ttk
-print(sqlite3.sqlite_version)
 
 import TabManager
 import user
