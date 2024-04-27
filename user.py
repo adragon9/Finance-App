@@ -13,7 +13,7 @@ class User:
         """
         self.username = username
         self.password = password
-        self.balance = 0.0
+        self.income = 0.0
 
     def create_user(self):
         connection = sqlite3.connect("Users.db")
@@ -32,7 +32,7 @@ class User:
             user_name TEXT PRIMARY KEY,
             date_created DATETIME,
             password TEXT,
-            balance MONEY)""")
+            income MONEY)""")
 
             cursor.execute("""CREATE TABLE IF NOT EXISTS expense_categories(
             category_name TEXT,
@@ -59,7 +59,7 @@ class User:
                 user_name,
                 date_created,
                 password,
-                balance) VALUES(?,?,?,?)""", (self.username, date, self.password, self.balance))
+                income) VALUES(?,?,?,?)""", (self.username, date, self.password, self.income))
             except sqlite3.IntegrityError:
                 print("USERNAME TAKEN")
                 connection.close()
@@ -109,7 +109,7 @@ class User:
             category_name,
             user_name,
             expense_amount,
-            expense_added) VALUE(?, ?, ?, ?""", (expense_cat, self.username, expense_amount, date))
+            expense_added) VALUES(?, ?, ?, ?)""", (expense_cat, self.username, expense_amount, date))
         except sqlite3.IntegrityError:
             print("ID EXISTS")
             connection.close()
@@ -155,22 +155,22 @@ class User:
     def get_current_password(self):
         return self.password
 
-    def set_balance(self, balance):
+    def set_income(self, income):
         connection = sqlite3.connect("Users.db")
         cursor = connection.cursor()
         success = None
 
         try:
-            self.balance = float(balance)
+            self.income = float(income)
             # remove for final build ;)
-            if self.balance > 9999999:
-                print("Balance Set, look at you high roller.")
+            if self.income > 9999999:
+                print("income Set, look at you high roller.")
             else:
-                print("Balance Set")
+                print("income Set")
 
             cursor.execute("""UPDATE users
-            SET balance = ?
-            WHERE user_name = ?""", (self.balance, self.username))
+            SET income = ?
+            WHERE user_name = ?""", (self.income, self.username))
 
             connection.commit()
             connection.close()
@@ -185,18 +185,18 @@ class User:
 
         return success
 
-    def get_balance(self):
+    def get_income(self):
         connection = sqlite3.connect("Users.db")
         cursor = connection.cursor()
 
         cursor.execute("""
-        SELECT balance
+        SELECT income
         FROM users
         WHERE user_name = ?""", (self.username,))
 
         bal = cursor.fetchone()
-        self.balance = bal[0]
+        self.income = bal[0]
         connection.close()
 
-        print(self.balance)
-        return self.balance
+        print(self.income)
+        return self.income

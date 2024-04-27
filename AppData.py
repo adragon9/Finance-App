@@ -11,12 +11,13 @@ class Window:
     dat_password = None
     dat_balance = None
     dat_expense_cat = None
+    dat_expense_amount = None
     # dat_expense_desc = None
 
     # Data to be used, only updated at certain points
     saved_dat_user = None
     saved_dat_pass = None
-    saved_dat_balance = None
+    saved_dat_income = None
     saved_dat_expense_cat = None
     saved_dat_expense_desc = None
 

@@ -127,12 +127,12 @@ def app_btn_manager(event_id):
         # Clear saved user and password
         Window.saved_dat_user = None
         Window.saved_dat_pass = None
-        Window.saved_dat_balance = None
+        Window.saved_dat_income = None
 
         # Clear ALL entry boxes on logout
         entry_username.delete(0, tk.END)
         entry_pass.delete(0, tk.END)
-        entry_balance.delete(0, tk.END)
+        entry_income.delete(0, tk.END)
         entry_expense_cat.delete(0, tk.END)
         entry_expense_desc.delete("1.0", "end-1c")
 
@@ -157,22 +157,22 @@ def app_btn_manager(event_id):
         # print(Window.saved_dat_user, Window.saved_dat_pass) <-- used to check if the username and pass was being saved
         if Window.current_user is not None:
             data_backup()
-            balance = Window.current_user.set_balance(entry_balance.get())
+            balance = Window.current_user.set_income(entry_income.get())
             if balance:
                 tabs_canvas[1].itemconfig(txt_user_info2,
-                                          text=f"{Strings.success_balance}${Window.current_user.get_balance():,.2f}")
-                Window.saved_dat_balance = Window.current_user.get_balance()
-                entry_balance.delete(0, tk.END)
+                                          text=f"{Strings.success_balance}${Window.current_user.get_income():,.2f}")
+                Window.saved_dat_income = Window.current_user.get_income()
+                entry_income.delete(0, tk.END)
                 root.after(3000, lambda: revert_text(tabs_canvas[1], txt_user_info2))
             else:
                 tabs_canvas[1].itemconfig(txt_user_info2,
-                                          text=f"{Strings.fail_balance}${Window.current_user.get_balance():,.2f}")
-                Window.saved_dat_balance = Window.current_user.get_balance()
-                entry_balance.delete(0, tk.END)
+                                          text=f"{Strings.fail_balance}${Window.current_user.get_income():,.2f}")
+                Window.saved_dat_income = Window.current_user.get_income()
+                entry_income.delete(0, tk.END)
                 root.after(3000, lambda: revert_text(tabs_canvas[1], txt_user_info2))
         else:
             print("No user logged in")
-    # Submit category
+    # Submit new category
     elif event_id == 5:
         Window.saved_dat_expense_desc = entry_expense_desc.get("1.0", "end-1c")
         Window.saved_dat_expense_cat = Window.dat_expense_cat.get()
@@ -186,9 +186,9 @@ def app_btn_manager(event_id):
             # Update the category dropdown box
             Window.dat_dropdown_categories = get_categories(Window.saved_dat_user)
             drp_cats.configure(values=Window.dat_dropdown_categories)
-    # Test event
+    # Add expense of selected type
     elif event_id == 6:
-        pass
+        Window.current_user.add_expense(drp_cats.get(), Window.dat_expense_amount.get())
 
 
 """
@@ -225,10 +225,10 @@ def window_adjustment(event):
 
     elif cur_tab == tab_names[1]:
         t = 1
-        tabs_canvas[t].coords(txt_balance_des, tabs_canvas[t].coords(headers[t])[0], tabs_canvas[t].coords(headers[t])[1] + 80)
+        tabs_canvas[t].coords(txt_income_des, tabs_canvas[t].coords(headers[t])[0], tabs_canvas[t].coords(headers[t])[1] + 80)
         tabs_canvas[t].coords(win_balance_display, tabs_w[t] / 2, tabs_h[t] / 2)
-        tabs_canvas[t].coords(win_sbmt_bal_display, tabs_canvas[t].coords(win_balance_display)[0], tabs_canvas[t].coords(win_balance_display)[1] + 45)
-        tabs_canvas[t].coords(txt_user_info2, tabs_canvas[t].coords(win_sbmt_bal_display)[0], tabs_canvas[t].coords(win_sbmt_bal_display)[1] + 45)
+        tabs_canvas[t].coords(win_sbmt_inc_display, tabs_canvas[t].coords(win_balance_display)[0], tabs_canvas[t].coords(win_balance_display)[1] + 45)
+        tabs_canvas[t].coords(txt_user_info2, tabs_canvas[t].coords(win_sbmt_inc_display)[0], tabs_canvas[t].coords(win_sbmt_inc_display)[1] + 45)
 
     elif cur_tab == tab_names[2]:
         t = 2
@@ -242,9 +242,9 @@ def window_adjustment(event):
     elif cur_tab == tab_names[3]:
         t = 3
         tabs_canvas[t].coords(txt_test, tabs_canvas[t].coords(headers[t])[0], tabs_canvas[t].coords(headers[t])[1] + 80)
-        tabs_canvas[t].coords(win_test, tabs_w[t] / 2, tabs_h[t] / 2)
-        tabs_canvas[t].coords(win_test_btn, tabs_canvas[t].coords(win_test)[0], tabs_canvas[t].coords(win_test)[1] + 45)
-        tabs_canvas[t].coords(win_dropdown_cats, tabs_w[t] / 2, tabs_h[t] - 100)
+        tabs_canvas[t].coords(win_expense_amount, tabs_w[t] / 2, tabs_h[t] / 2)
+        tabs_canvas[t].coords(win_sbmt_expense_amount, tabs_canvas[t].coords(win_expense_amount)[0], tabs_canvas[t].coords(win_expense_amount)[1] + 45)
+        tabs_canvas[t].coords(win_dropdown_cats, tabs_canvas[t].coords(win_expense_amount)[0] + 290, tabs_canvas[t].coords(win_expense_amount)[1])
 
 
 # The logout button was getting a focus box for some reason, this fixed it.
@@ -268,7 +268,7 @@ if __name__ == "__main__":
     # This is a master control for the number and names of tabs
     # >>> THE NUMBER OF TABS AND THE NUMBER OF STRINGS IN tab_names MUST MATCH <<<
     num_tabs = 4
-    tab_names = ["Home", "Set Balance", "Expense Tagger", "Testing tab"]
+    tab_names = ["Home", "Set Income", "Expense Tagger", "Add Expense"]
     # Needed arrays
     tabs_w = []
     tabs_h = []
@@ -292,6 +292,7 @@ if __name__ == "__main__":
     Window.dat_password = tk.StringVar()
     Window.dat_balance = tk.StringVar()
     Window.dat_expense_cat = tk.StringVar()
+    Window.dat_expense_amount = tk.StringVar()
     # This is the style sheet for the ttk module
     style = ttk.Style()
     style.theme_create("CustomStyle", parent='classic',
@@ -361,13 +362,13 @@ if __name__ == "__main__":
     # >>> Tab 1 Content END <<<
 
     # Tab 2 Content
-    txt_balance_des = tabs_canvas[1].create_text(0, 0, anchor='n', font=("Candara Light", 12), justify='center', text=Strings.balance_desc)
+    txt_income_des = tabs_canvas[1].create_text(0, 0, anchor='n', font=("Candara Light", 12), justify='center', text=Strings.balance_desc)
     txt_user_info2 = tabs_canvas[1].create_text(0, 0, anchor='n', font=("Candara Light", 12), text='')
-    entry_balance = tk.Entry(tabs[1], width=40, font=("Candara Light", 12), textvariable=Window.dat_balance)
-    btn_sbmt_bal = tk.Button(tabs[1], text="Submit", width=20, anchor='center', command=lambda: app_btn_manager(4))
+    entry_income = tk.Entry(tabs[1], width=40, font=("Candara Light", 12), textvariable=Window.dat_balance)
+    btn_sbmt_inc = tk.Button(tabs[1], text="Submit", width=20, anchor='center', command=lambda: app_btn_manager(4))
 
-    win_balance_display = tabs_canvas[1].create_window(0, 0, anchor='center', window=entry_balance)
-    win_sbmt_bal_display = tabs_canvas[1].create_window(0, 0, anchor='center', window=btn_sbmt_bal)
+    win_balance_display = tabs_canvas[1].create_window(0, 0, anchor='center', window=entry_income)
+    win_sbmt_inc_display = tabs_canvas[1].create_window(0, 0, anchor='center', window=btn_sbmt_inc)
     # >>> Tab 2 Content END <<<
 
     # Tab 3 Content
@@ -384,13 +385,13 @@ if __name__ == "__main__":
     # >>>Tab 3 Content End
 
     # Tab 4 Content
-    drp_cats = ttk.Combobox(tabs[3], values=Window.dat_dropdown_categories, state='readonly')
+    drp_cats = ttk.Combobox(tabs[3], values=Window.dat_dropdown_categories, state='readonly', font=("Candara Light", 12))
     txt_test = tabs_canvas[3].create_text(0, 0, anchor='n', font=("Candara Light", 12), justify='center', text=Strings.balance_desc)
-    entry_test = tk.Entry(tabs[3], width=40, font=("Candara Light", 12), textvariable=Window.dat_balance)
-    btn_test = tk.Button(tabs[3], text="Submit", width=20, anchor='center', command=lambda: app_btn_manager(6))
+    entry_expense_amount = tk.Entry(tabs[3], width=40, font=("Candara Light", 12), textvariable=Window.dat_expense_amount)
+    btn_sbmt_expense_amount = tk.Button(tabs[3], text="Submit", width=20, anchor='center', command=lambda: app_btn_manager(6))
 
-    win_test = tabs_canvas[3].create_window(0, 0, anchor='center', window=entry_test)
-    win_test_btn = tabs_canvas[3].create_window(0, 0, anchor='center', window=btn_test)
+    win_expense_amount = tabs_canvas[3].create_window(0, 0, anchor='center', window=entry_expense_amount)
+    win_sbmt_expense_amount = tabs_canvas[3].create_window(0, 0, anchor='center', window=btn_sbmt_expense_amount)
     win_dropdown_cats = tabs_canvas[3].create_window(0, 0, anchor='center', window=drp_cats)
     # >>>Tab 4 Content End
 
