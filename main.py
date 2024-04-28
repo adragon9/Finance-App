@@ -195,28 +195,33 @@ def app_btn_manager(event_id):
 
 
 def report_event_manager(event_id):
+    report_display.config(state="normal")
     report_display.delete("1.0", "end-1c")
     # gets ALL USER INFO, REMOVE FOR FINAL BUILD
     if event_id == 1:
-        report_display.config(state="normal")
         rv = ReportViewer.db_get_all()
 
         item_string = ""
         for item in rv:
-            for element in item:
-                item_string += str(element) + ", "
+            for iteration, element in enumerate(item):
+                if iteration != len(item) - 1:
+                    item_string += str(element) + ", "
+                else:
+                    item_string += str(element) + ";"
             report_display.insert(tk.END, item_string, "center")
             report_display.insert(tk.END, '\n', "center")
             item_string = ""
     # Lists the expenses of the current user
     elif event_id == 2:
-        report_display.config(state="normal")
         rv = ReportViewer.db_get_expense_total(Window.saved_dat_user)
 
         item_string = ""
         for item in rv:
-            for element in item:
-                item_string += str(element) + ", "
+            for iteration, element in enumerate(item):
+                if iteration != len(item) - 1:
+                    item_string += str(element) + ", "
+                else:
+                    item_string += str(element) + ";"
             report_display.insert(tk.END, item_string, "center")
             report_display.insert(tk.END, '\n', "center")
             item_string = ""
