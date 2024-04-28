@@ -2,6 +2,7 @@ import sqlite3
 import tkinter as tk
 from tkinter import ttk
 
+import ReportViewer
 import TabManager
 import user
 from AppData import Window
@@ -135,6 +136,10 @@ def app_btn_manager(event_id):
         entry_income.delete(0, tk.END)
         entry_expense_cat.delete(0, tk.END)
         entry_expense_desc.delete("1.0", "end-1c")
+        # This clears the report display, it has to be activated to edit and then deactivated.
+        report_display.config(state="normal")
+        report_display.delete("1.0", "end-1c")
+        report_display.config(state="disabled")
 
         # print(Window.saved_dat_user, Window.saved_dat_pass, Window.saved_dat_balance)
         btn_login.configure(state="normal")
@@ -159,14 +164,12 @@ def app_btn_manager(event_id):
             data_backup()
             balance = Window.current_user.set_income(entry_income.get())
             if balance:
-                tabs_canvas[1].itemconfig(txt_user_info2,
-                                          text=f"{Strings.success_balance}${Window.current_user.get_income():,.2f}")
+                tabs_canvas[1].itemconfig(txt_user_info2, text=f"{Strings.success_balance}${Window.current_user.get_income():,.2f}")
                 Window.saved_dat_income = Window.current_user.get_income()
                 entry_income.delete(0, tk.END)
                 root.after(3000, lambda: revert_text(tabs_canvas[1], txt_user_info2))
             else:
-                tabs_canvas[1].itemconfig(txt_user_info2,
-                                          text=f"{Strings.fail_balance}${Window.current_user.get_income():,.2f}")
+                tabs_canvas[1].itemconfig(txt_user_info2, text=f"{Strings.fail_balance}${Window.current_user.get_income():,.2f}")
                 Window.saved_dat_income = Window.current_user.get_income()
                 entry_income.delete(0, tk.END)
                 root.after(3000, lambda: revert_text(tabs_canvas[1], txt_user_info2))
@@ -191,6 +194,36 @@ def app_btn_manager(event_id):
         Window.current_user.add_expense(drp_cats.get(), Window.dat_expense_amount.get())
 
 
+def report_event_manager(event_id):
+    report_display.delete("1.0", "end-1c")
+    # gets ALL USER INFO, REMOVE FOR FINAL BUILD
+    if event_id == 1:
+        report_display.config(state="normal")
+        rv = ReportViewer.db_get_all()
+
+        item_string = ""
+        for item in rv:
+            for element in item:
+                item_string += str(element) + ", "
+            report_display.insert(tk.END, item_string, "center")
+            report_display.insert(tk.END, '\n', "center")
+            item_string = ""
+    # Lists the expenses of the current user
+    elif event_id == 2:
+        report_display.config(state="normal")
+        rv = ReportViewer.db_get_expense_total(Window.saved_dat_user)
+
+        item_string = ""
+        for item in rv:
+            for element in item:
+                item_string += str(element) + ", "
+            report_display.insert(tk.END, item_string, "center")
+            report_display.insert(tk.END, '\n', "center")
+            item_string = ""
+
+    report_display.config(state="disabled")
+
+
 """
 Ensures that all elements stay in relative positions when window size is changed
 The event is also a necessary parameter for this function to call correctly as it is needed by .bind()
@@ -203,7 +236,7 @@ def window_adjustment(event):
         tabs_w[t] = tabs_canvas[t].winfo_width()
         tabs_h[t] = tabs_canvas[t].winfo_height()
         tabs_canvas[t].coords(headers[t], tabs_w[t] / 2, 0)
-        tabs_canvas[t].coords(logouts_windows[t], tabs_w[t] - 10, tabs_h[t] - 10)
+        tabs_canvas[t].coords(logouts_windows[t], tabs_w[t] - 20, tabs_h[t] - 10)
 
     # Needed to reduce flickering on tab change
     root.update_idletasks()
@@ -246,6 +279,12 @@ def window_adjustment(event):
         tabs_canvas[t].coords(win_sbmt_expense_amount, tabs_canvas[t].coords(win_expense_amount)[0], tabs_canvas[t].coords(win_expense_amount)[1] + 45)
         tabs_canvas[t].coords(win_dropdown_cats, tabs_canvas[t].coords(win_expense_amount)[0] + 290, tabs_canvas[t].coords(win_expense_amount)[1])
 
+    elif cur_tab == tab_names[4]:
+        t = 4
+        report_display.config(width=round(tabs_w[t] * .11), height=tabs_h[t] / 21)
+        tabs_canvas[t].coords(win_report_all, report_frame.winfo_x() + 74, (report_frame.winfo_y() + report_frame.winfo_reqheight()) + 5)
+        tabs_canvas[t].coords(win_report_expenses, tabs_canvas[t].coords(win_report_all)[0] + btn_report_expenses.winfo_reqwidth(), tabs_canvas[t].coords(win_report_all)[1])
+
 
 # The logout button was getting a focus box for some reason, this fixed it.
 def tab_change(event):
@@ -267,8 +306,8 @@ def show_tabs():
 if __name__ == "__main__":
     # This is a master control for the number and names of tabs
     # >>> THE NUMBER OF TABS AND THE NUMBER OF STRINGS IN tab_names MUST MATCH <<<
-    num_tabs = 4
-    tab_names = ["Home", "Set Income", "Expense Tagger", "Add Expense"]
+    num_tabs = 5
+    tab_names = ["Home", "Set Income", "Expense Tagger", "Add Expense", "test"]
     # Needed arrays
     tabs_w = []
     tabs_h = []
@@ -338,8 +377,7 @@ if __name__ == "__main__":
         tabs_canvas.append(obj_tabs[i].get_canvas())
         # Common element instantiation
         headers.append(tabs_canvas[i].create_text(0, 0, anchor='n', font=("Candara", 40), text=Strings.title))
-        logouts.append(
-            tk.Button(tabs[i], text="Logout", state="disabled", width=20, command=lambda: app_btn_manager(3)))
+        logouts.append(tk.Button(tabs[i], text="Logout", state="disabled", width=20, command=lambda: app_btn_manager(3)))
         logouts_windows.append(tabs_canvas[i].create_window(0, 0, anchor='se', window=logouts[i]))
 
     # Tab 1 content
@@ -394,7 +432,28 @@ if __name__ == "__main__":
     win_sbmt_expense_amount = tabs_canvas[3].create_window(0, 0, anchor='center', window=btn_sbmt_expense_amount)
     win_dropdown_cats = tabs_canvas[3].create_window(0, 0, anchor='center', window=drp_cats)
     # >>>Tab 4 Content End
+    # Tab 5 Content
+    # Needs buttons to select data sets
+    report_frame = tk.Frame(tabs[4])
+    report_frame.place(relx=.5, rely=.5, anchor='center')
+    # win_report_frame = tabs_canvas[4].create_window(0, 0, anchor='center', window=report_frame)
+    report_display = tk.Text(report_frame, wrap='none')
+    report_display.pack(expand=True)
 
+    # Buttons for getting different reports
+    btn_report_all = tk.Button(tabs[4], text="Get All Users", width=20, anchor='center', command=lambda: report_event_manager(1))
+    btn_report_expenses = tk.Button(tabs[4], text="Get Expenses", width=20, anchor='center', command=lambda: report_event_manager(2))
+    # Button windows
+    win_report_all = tabs_canvas[4].create_window(0, 0, anchor="n", window=btn_report_all)
+    win_report_expenses = tabs_canvas[4].create_window(0, 0, anchor="n", window=btn_report_expenses)
+
+    scroll = tk.Scrollbar(tabs_canvas[4], orient='vertical', command=report_display.yview)
+    report_display.config(yscrollcommand=scroll.set)
+    scroll.pack(side=tk.RIGHT, fill=tk.Y)
+
+    report_display.tag_configure("center", justify="center")
+    report_display.config(state="disabled")
+    # >>>Tab 5 Content End
     # Add the tabs to the tab controller
     for i in range(0, num_tabs):
         tabControl.add(tabs[i], text=tab_names[i])
