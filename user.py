@@ -14,6 +14,8 @@ class User:
         self.username = username
         self.password = password
         self.income = 0.0
+        self.now = dt.datetime.now()
+        self.date = self.now.strftime("%m-%d-%Y %I:%M:%S %p")
 
     def create_user(self):
         connection = sqlite3.connect("Users.db")
@@ -51,8 +53,6 @@ class User:
             expense_added DATE,
             FOREIGN KEY(user_name) REFERENCES users(user_name),
             FOREIGN KEY(category_name) REFERENCES expense_categories(category_name))""")
-            now = dt.datetime.now()
-            date = now.strftime("%m-%d-%Y %H:%M:%S")
 
             try:
                 cursor.execute("""
@@ -60,7 +60,7 @@ class User:
                 user_name,
                 date_created,
                 password,
-                income) VALUES(?,?,?,?)""", (self.username, date, self.password, self.income))
+                income) VALUES(?,?,?,?)""", (self.username, self.date, self.password, self.income))
             except sqlite3.IntegrityError:
                 print("USERNAME TAKEN")
                 connection.close()
@@ -87,14 +87,12 @@ class User:
         if self.username != '':
             connection = sqlite3.connect('Users.db')
             cursor = connection.cursor()
-            now = datetime.datetime.now()
-            date = now.strftime("%m-%d-%Y %H:%M:%S")
             try:
                 cursor.execute("""INSERT INTO expense_categories(
                 category_name,
                 user_name,
                 category_date,
-                category_desc) Values(?,?,?,?)""", (expense_cat, self.username, date, expense_desc))
+                category_desc) Values(?,?,?,?)""", (expense_cat, self.username, self.date, expense_desc))
             except sqlite3.IntegrityError:
                 print("CATEGORY EXISTS")
                 connection.close()
@@ -112,8 +110,6 @@ class User:
     def add_expense(self, expense_cat, expense_amount):
         connection = sqlite3.connect('Users.db')
         cursor = connection.cursor()
-        now = datetime.datetime.now()
-        date = now.strftime("%m-%d-%Y %H:%M:%S")
         status = ""
         if expense_amount.strip() == '':
             connection.close()
@@ -136,7 +132,7 @@ class User:
             category_name,
             user_name,
             expense_amount,
-            expense_added) VALUES(?, ?, ?, ?)""", (expense_cat, self.username, expense_amount, date))
+            expense_added) VALUES(?, ?, ?, ?)""", (expense_cat, self.username, expense_amount, self.date))
         except sqlite3.IntegrityError:
             print("ID EXISTS")
             connection.close()
