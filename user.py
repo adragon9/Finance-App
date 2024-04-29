@@ -51,7 +51,8 @@ class User:
             expense_added DATE,
             FOREIGN KEY(user_name) REFERENCES users(user_name),
             FOREIGN KEY(category_name) REFERENCES expense_categories(category_name))""")
-            date = dt.datetime.now()
+            now = dt.datetime.now()
+            date = now.strftime("%m-%d-%Y %H:%M:%S")
 
             try:
                 cursor.execute("""
@@ -77,11 +78,17 @@ class User:
             connection.close()
             return False
 
-    def create_expense(self, expense_cat, expense_desc):
+    def create_expense_tag(self, expense_cat, expense_desc):
+        status = ""
+        if expense_cat.strip() == "":
+            status = "You have not entered a category name!"
+            return status
+
         if self.username != '':
             connection = sqlite3.connect('Users.db')
             cursor = connection.cursor()
-            date = datetime.datetime.now()
+            now = datetime.datetime.now()
+            date = now.strftime("%m-%d-%Y %H:%M:%S")
             try:
                 cursor.execute("""INSERT INTO expense_categories(
                 category_name,
@@ -91,18 +98,39 @@ class User:
             except sqlite3.IntegrityError:
                 print("CATEGORY EXISTS")
                 connection.close()
-                return False
+                status = "This category already exists!"
+                return status
 
             connection.commit()
             connection.close()
-            return True
+            status = "Category added successfully!"
+            return status
         else:
-            return False
+            status = "NO USER"
+            return status
 
     def add_expense(self, expense_cat, expense_amount):
         connection = sqlite3.connect('Users.db')
         cursor = connection.cursor()
-        date = datetime.datetime.now()
+        now = datetime.datetime.now()
+        date = now.strftime("%m-%d-%Y %H:%M:%S")
+        status = ""
+
+        if expense_amount.strip() == '':
+            connection.close()
+            status = "Expense must be greater than 0!"
+            return status
+        elif expense_cat.strip() == '':
+            connection.close()
+            status = "No category selected!"
+            return status
+
+        try:
+            expense_amount = float(expense_amount)
+        except ValueError:
+            connection.close()
+            status = "The value you have entered is not a number!"
+            return status
 
         try:
             cursor.execute("""INSERT INTO expenses(
@@ -113,11 +141,13 @@ class User:
         except sqlite3.IntegrityError:
             print("ID EXISTS")
             connection.close()
-            return False
+            status = "This expense already exists!"
+            return status
 
         connection.commit()
         connection.close()
-        return True
+        status = "Expense added successfully!"
+        return status
 
     # Modify the login method to return True on successful login, and False otherwise
     def login(self):
@@ -158,32 +188,21 @@ class User:
     def set_income(self, income):
         connection = sqlite3.connect("Users.db")
         cursor = connection.cursor()
-        success = None
+        status = ""
 
         try:
             self.income = float(income)
-            # remove for final build ;)
-            if self.income > 9999999:
-                print("income Set, look at you high roller.")
-            else:
-                print("income Set")
-
             cursor.execute("""UPDATE users
             SET income = ?
             WHERE user_name = ?""", (self.income, self.username))
 
             connection.commit()
             connection.close()
-            success = True
+            status = f"Income set to: ${self.income:,.2f}"
         except ValueError:
-            print("A problem occurred")
-            success = False
+            status = "Your input for 'income' is not a number!"
 
-        # Just in case something goes wrong
-        if success is None:
-            success = False
-
-        return success
+        return status
 
     def get_income(self):
         connection = sqlite3.connect("Users.db")

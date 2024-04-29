@@ -42,7 +42,8 @@ def get_categories(username):
     cursor.execute("""
     SELECT category_name 
     FROM expense_categories
-    WHERE user_name = ?""", (username,))
+    WHERE user_name = ?
+    ORDER BY category_name ASC""", (username,))
 
     fetch = cursor.fetchall()
     categories = []
@@ -53,6 +54,21 @@ def get_categories(username):
 
 def dropdown_control(*args):
     print(drp_cats.get())
+
+
+def set_session_balance(balance):
+    status = ""
+    if balance.strip() == '':
+        status = "There is no input for 'balance'!"
+        return status
+    else:
+        try:
+            Window.saved_dat_balance = float(balance)
+            status = f"Session balance set to: ${Window.saved_dat_balance:,.2f}"
+            return status
+        except ValueError:
+            status = "Your input for 'balance' is not a number!"
+            return status
 
 
 def app_btn_manager(event_id):
@@ -89,11 +105,11 @@ def app_btn_manager(event_id):
             # Inform user, update displays, clear inputs
             show_tabs()
             tabs_canvas[0].itemconfig(txt_splash, text=f"Welcome, {cur_user.get_current_user()}")
-            tabs_canvas[0].itemconfig(txt_user_info1, text=Strings.success)
-            root.after(3000, lambda: revert_text(tabs_canvas[0], txt_user_info1))
+            tabs_canvas[0].itemconfig(user_info[0], text=Strings.success_login)
+            root.after(user_info_timer, lambda: revert_text(tabs_canvas[0], user_info[0]))
         else:
-            tabs_canvas[0].itemconfig(txt_user_info1, text=Strings.fail_login)
-            root.after(3000, lambda: revert_text(tabs_canvas[0], txt_user_info1))
+            tabs_canvas[0].itemconfig(user_info[0], text=Strings.fail_login)
+            root.after(user_info_timer, lambda: revert_text(tabs_canvas[0], user_info[0]))
 
         # Create user event
     # Create user event
@@ -101,28 +117,28 @@ def app_btn_manager(event_id):
         status = cur_user.create_user()
         print(status)
         if status:
-            tabs_canvas[0].itemconfig(txt_user_info1, text=Strings.success_create)
-            root.after(3000, lambda: revert_text(tabs_canvas[0], txt_user_info1))
+            tabs_canvas[0].itemconfig(user_info[0], text=Strings.success_create_user)
+            root.after(user_info_timer, lambda: revert_text(tabs_canvas[0], user_info[0]))
 
         elif not status and cur_user.get_current_user() is None and cur_user.get_current_password() is None:
-            tabs_canvas[0].itemconfig(txt_user_info1, text=f"{Strings.blank}: BOTH")
-            root.after(3000, lambda: revert_text(tabs_canvas[0], txt_user_info1))
+            tabs_canvas[0].itemconfig(user_info[0], text=f"{Strings.blank}: BOTH")
+            root.after(user_info_timer, lambda: revert_text(tabs_canvas[0], user_info[0]))
 
         elif not status and cur_user.get_current_password() is None:
-            tabs_canvas[0].itemconfig(txt_user_info1, text=f"{Strings.blank}: Password")
-            root.after(3000, lambda: revert_text(tabs_canvas[0], txt_user_info1))
+            tabs_canvas[0].itemconfig(user_info[0], text=f"{Strings.blank}: Password")
+            root.after(user_info_timer, lambda: revert_text(tabs_canvas[0], user_info[0]))
 
         elif not status and cur_user.get_current_user() is None:
-            tabs_canvas[0].itemconfig(txt_user_info1, text=f"{Strings.blank}: USERNAME")
-            root.after(3000, lambda: revert_text(tabs_canvas[0], txt_user_info1))
+            tabs_canvas[0].itemconfig(user_info[0], text=f"{Strings.blank}: USERNAME")
+            root.after(user_info_timer, lambda: revert_text(tabs_canvas[0], user_info[0]))
 
         elif not status and cur_user.get_current_password() is None:
-            tabs_canvas[0].itemconfig(txt_user_info1, text=f"{Strings.blank}: Password")
-            root.after(3000, lambda: revert_text(tabs_canvas[0], txt_user_info1))
+            tabs_canvas[0].itemconfig(user_info[0], text=f"{Strings.blank}: Password")
+            root.after(user_info_timer, lambda: revert_text(tabs_canvas[0], user_info[0]))
 
         else:
-            tabs_canvas[0].itemconfig(txt_user_info1, text=Strings.fail_create)
-            root.after(3000, lambda: revert_text(tabs_canvas[0], txt_user_info1))
+            tabs_canvas[0].itemconfig(user_info[0], text=Strings.fail_create_user)
+            root.after(user_info_timer, lambda: revert_text(tabs_canvas[0], user_info[0]))
     # Logout event
     elif event_id == 3:
         # Clear saved user and password
@@ -134,8 +150,18 @@ def app_btn_manager(event_id):
         entry_username.delete(0, tk.END)
         entry_pass.delete(0, tk.END)
         entry_income.delete(0, tk.END)
+        entry_expense_amount.delete(0, tk.END)
         entry_expense_cat.delete(0, tk.END)
         entry_expense_desc.delete("1.0", "end-1c")
+
+        # Clear variables
+        Window.saved_dat_user = None
+        Window.saved_dat_pass = None
+        Window.saved_dat_income = None
+        Window.saved_dat_balance = None
+        Window.saved_dat_expense_cat = None
+        Window.saved_dat_expense_desc = None
+
         # This clears the report display, it has to be activated to edit and then deactivated.
         report_display.config(state="normal")
         report_display.delete("1.0", "end-1c")
@@ -157,24 +183,22 @@ def app_btn_manager(event_id):
             logouts[k].configure(state='disabled')
         hide_tabs()
         tabs_canvas[0].itemconfig(txt_splash, text=Strings.splash)
-    # Submit user balance
+    # Submit user balance and income
     elif event_id == 4:
         # print(Window.saved_dat_user, Window.saved_dat_pass) <-- used to check if the username and pass was being saved
         if Window.current_user is not None:
             data_backup()
-            balance = Window.current_user.set_income(entry_income.get())
-            if balance:
-                tabs_canvas[1].itemconfig(txt_user_info2, text=f"{Strings.success_balance}${Window.current_user.get_income():,.2f}")
-                Window.saved_dat_income = Window.current_user.get_income()
-                entry_income.delete(0, tk.END)
-                root.after(3000, lambda: revert_text(tabs_canvas[1], txt_user_info2))
-            else:
-                tabs_canvas[1].itemconfig(txt_user_info2, text=f"{Strings.fail_balance}${Window.current_user.get_income():,.2f}")
-                Window.saved_dat_income = Window.current_user.get_income()
-                entry_income.delete(0, tk.END)
-                root.after(3000, lambda: revert_text(tabs_canvas[1], txt_user_info2))
+            balance = set_session_balance(entry_balance.get())
+            income = Window.current_user.set_income(entry_income.get())
+
+            tabs_canvas[1].itemconfig(user_info[1], text=balance)
+            tabs_canvas[1].itemconfig(txt_user_info2, text=income)
+            entry_balance.delete(0, tk.END)
+            entry_income.delete(0, tk.END)
+            root.after(user_info_timer, lambda: revert_text(tabs_canvas[1], user_info[1]))
+            root.after(user_info_timer, lambda: revert_text(tabs_canvas[1], txt_user_info2))
         else:
-            print("No user logged in")
+            tabs_canvas[1].itemconfig(user_info[1], text="No user logged in!")
     # Submit new category
     elif event_id == 5:
         Window.saved_dat_expense_desc = entry_expense_desc.get("1.0", "end-1c")
@@ -183,15 +207,21 @@ def app_btn_manager(event_id):
         entry_expense_desc.delete("1.0", "end-1c")
         entry_expense_cat.delete(0, tk.END)
 
-        if Window.saved_dat_expense_cat != '':
-            print(Window.saved_dat_expense_cat, Window.saved_dat_expense_desc)
-            Window.current_user.create_expense(Window.saved_dat_expense_cat, Window.saved_dat_expense_desc)
-            # Update the category dropdown box
-            Window.dat_dropdown_categories = get_categories(Window.saved_dat_user)
-            drp_cats.configure(values=Window.dat_dropdown_categories)
+        print(Window.saved_dat_expense_cat, Window.saved_dat_expense_desc)
+        create_expense = Window.current_user.create_expense_tag(Window.saved_dat_expense_cat, Window.saved_dat_expense_desc)
+        # Update the category dropdown box
+        Window.dat_dropdown_categories = get_categories(Window.saved_dat_user)
+        drp_cats.configure(values=Window.dat_dropdown_categories)
+
+        tabs_canvas[2].itemconfigure(user_info[2], text=create_expense)
+        root.after(user_info_timer, lambda: revert_text(tabs_canvas[2], user_info[2]))
     # Add expense of selected type
     elif event_id == 6:
-        Window.current_user.add_expense(drp_cats.get(), Window.dat_expense_amount.get())
+        entry_expense_amount.delete(0, tk.END)
+        add_expense = Window.current_user.add_expense(drp_cats.get(), Window.dat_expense_amount.get())
+        tabs_canvas[3].itemconfigure(user_info[3], text=add_expense)
+        root.after(user_info_timer, lambda: revert_text(tabs_canvas[3], user_info[3]))
+        # if add_expense:
 
 
 def report_event_manager(event_id):
@@ -259,14 +289,18 @@ def window_adjustment(event):
         tabs_canvas[t].coords(win_username_display, tabs_w[t] / 2, tabs_h[t] * .5)
         tabs_canvas[t].coords(txt_password, entry_pass.winfo_x() - 40, entry_pass.winfo_y())
         tabs_canvas[t].coords(win_pass_display, tabs_w[t] / 2, entry_username.winfo_y() + 30)
-        tabs_canvas[t].coords(txt_user_info1, tabs_w[t] / 2, entry_username.winfo_y() + 60)
+        tabs_canvas[t].coords(user_info[t], tabs_w[t] / 2, entry_username.winfo_y() + 60)
 
     elif cur_tab == tab_names[1]:
         t = 1
-        tabs_canvas[t].coords(txt_income_des, tabs_canvas[t].coords(headers[t])[0], tabs_canvas[t].coords(headers[t])[1] + 80)
+        tabs_canvas[t].coords(txt_money_disclaimer, tabs_canvas[t].coords(headers[t])[0], tabs_canvas[t].coords(headers[t])[1] + 80)
         tabs_canvas[t].coords(win_balance_display, tabs_w[t] / 2, tabs_h[t] / 2)
-        tabs_canvas[t].coords(win_sbmt_inc_display, tabs_canvas[t].coords(win_balance_display)[0], tabs_canvas[t].coords(win_balance_display)[1] + 45)
-        tabs_canvas[t].coords(txt_user_info2, tabs_canvas[t].coords(win_sbmt_inc_display)[0], tabs_canvas[t].coords(win_sbmt_inc_display)[1] + 45)
+        tabs_canvas[t].coords(win_income_display, tabs_canvas[t].coords(win_balance_display)[0], tabs_canvas[t].coords(win_balance_display)[1] + 20)
+        tabs_canvas[t].coords(txt_balance_desc, tabs_canvas[t].coords(win_balance_display)[0] - (entry_balance.winfo_reqwidth() / 2) - 35, tabs_canvas[t].coords(win_balance_display)[1])
+        tabs_canvas[t].coords(txt_income_desc, tabs_canvas[t].coords(win_income_display)[0] - (entry_income.winfo_reqwidth() / 2) - 35, tabs_canvas[t].coords(win_income_display)[1])
+        tabs_canvas[t].coords(win_sbmt_money_display, tabs_canvas[t].coords(win_income_display)[0], tabs_canvas[t].coords(win_income_display)[1] + 45)
+        tabs_canvas[t].coords(user_info[t], tabs_canvas[t].coords(win_sbmt_money_display)[0], tabs_canvas[t].coords(win_sbmt_money_display)[1] + 45)
+        tabs_canvas[t].coords(txt_user_info2, tabs_canvas[t].coords(user_info[t])[0], tabs_canvas[t].coords(user_info[t])[1] + 20)
 
     elif cur_tab == tab_names[2]:
         t = 2
@@ -276,6 +310,7 @@ def window_adjustment(event):
         tabs_canvas[t].coords(win_sbmt_expense, tabs_w[t] / 2, tabs_h[t] - 10)
         tabs_canvas[t].coords(txt_expense_cat, entry_expense_cat.winfo_x() - 10, entry_expense_cat.winfo_y() + 10)
         tabs_canvas[t].coords(txt_expense_desc, tabs_canvas[t].coords(txt_expense_cat)[0], entry_expense_desc.winfo_y() + 10)
+        tabs_canvas[t].coords(user_info[t], tabs_w[t] / 2, tabs_h[t] * .8)
 
     elif cur_tab == tab_names[3]:
         t = 3
@@ -283,6 +318,7 @@ def window_adjustment(event):
         tabs_canvas[t].coords(win_expense_amount, tabs_w[t] / 2, tabs_h[t] / 2)
         tabs_canvas[t].coords(win_sbmt_expense_amount, tabs_canvas[t].coords(win_expense_amount)[0], tabs_canvas[t].coords(win_expense_amount)[1] + 45)
         tabs_canvas[t].coords(win_dropdown_cats, tabs_canvas[t].coords(win_expense_amount)[0] + 290, tabs_canvas[t].coords(win_expense_amount)[1])
+        tabs_canvas[t].coords(user_info[t], tabs_w[t] / 2, tabs_h[t] * .8)
 
     elif cur_tab == tab_names[4]:
         t = 4
@@ -295,6 +331,19 @@ def window_adjustment(event):
 def tab_change(event):
     tabControl.focus()
     # This guarantees that elements are displayed correctly on tab change
+    try:
+        drp_cats.set(Window.dat_dropdown_categories[0])
+    except IndexError:
+        drp_cats.set('')
+
+    # Make sure values don't persist on tab change
+    entry_username.delete(0, tk.END)
+    entry_pass.delete(0, tk.END)
+    entry_income.delete(0, tk.END)
+    entry_expense_amount.delete(0, tk.END)
+    entry_expense_cat.delete(0, tk.END)
+    entry_expense_desc.delete("1.0", "end-1c")
+
     window_adjustment(None)
     root.update()
 
@@ -316,6 +365,8 @@ if __name__ == "__main__":
     # >>> THE NUMBER OF TABS AND THE NUMBER OF STRINGS IN tab_names MUST MATCH <<<
     num_tabs = 5
     tab_names = ["Home", "Set Income", "Expense Tagger", "Add Expense", "test"]
+    # How long the messages are displayed in ms
+    user_info_timer = 5000
     # Needed arrays
     tabs_w = []
     tabs_h = []
@@ -330,6 +381,7 @@ if __name__ == "__main__":
     tabs_canvas = []
     # These are elements that appear on every page.
     headers = []
+    user_info = []
     logouts = []
     logouts_windows = []
 
@@ -338,6 +390,7 @@ if __name__ == "__main__":
     Window.dat_user = tk.StringVar()
     Window.dat_password = tk.StringVar()
     Window.dat_balance = tk.StringVar()
+    Window.dat_income = tk.StringVar()
     Window.dat_expense_cat = tk.StringVar()
     Window.dat_expense_amount = tk.StringVar()
     # This is the style sheet for the ttk module
@@ -385,6 +438,7 @@ if __name__ == "__main__":
         tabs_canvas.append(obj_tabs[i].get_canvas())
         # Common element instantiation
         headers.append(tabs_canvas[i].create_text(0, 0, anchor='n', font=("Candara", 40), text=Strings.title))
+        user_info.append(tabs_canvas[i].create_text(0, 0, anchor='n', font=("Candara Light", 12), text=''))
         logouts.append(tk.Button(tabs[i], text="Logout", state="disabled", width=20, command=lambda: app_btn_manager(3)))
         logouts_windows.append(tabs_canvas[i].create_window(0, 0, anchor='se', window=logouts[i]))
 
@@ -393,7 +447,6 @@ if __name__ == "__main__":
     txt_disclaimer = tabs_canvas[0].create_text(0, 0, anchor='n', font=("Candara Light", 10), text=Strings.disclaimer)
     txt_username = tabs_canvas[0].create_text(0, 0, anchor='n', font=("Candara Light", 12), text=Strings.username)
     txt_password = tabs_canvas[0].create_text(0, 0, anchor='n', font=("Candara Light", 12), text=Strings.password)
-    txt_user_info1 = tabs_canvas[0].create_text(0, 0, anchor='n', font=("Candara Light", 12), text='')
     entry_username = tk.Entry(tabs[0], width=40, font=("Candara Light", 12), textvariable=Window.dat_user)
     entry_pass = tk.Entry(tabs[0], show="*", width=40, font=("Candara Light", 12), textvariable=Window.dat_password)
 
@@ -408,13 +461,17 @@ if __name__ == "__main__":
     # >>> Tab 1 Content END <<<
 
     # Tab 2 Content
-    txt_income_des = tabs_canvas[1].create_text(0, 0, anchor='n', font=("Candara Light", 12), justify='center', text=Strings.balance_desc)
+    txt_money_disclaimer = tabs_canvas[1].create_text(0, 0, anchor='n', font=("Candara Light", 12), justify='center', text=Strings.money_disclaimer)
+    txt_balance_desc = tabs_canvas[1].create_text(0, 0, anchor='center', font=("Candara Light", 12), justify='center', text=Strings.balance_desc)
+    txt_income_desc = tabs_canvas[1].create_text(0, 0, anchor='n', font=("Candara Light", 12), justify='center', text=Strings.income_desc)
     txt_user_info2 = tabs_canvas[1].create_text(0, 0, anchor='n', font=("Candara Light", 12), text='')
-    entry_income = tk.Entry(tabs[1], width=40, font=("Candara Light", 12), textvariable=Window.dat_balance)
-    btn_sbmt_inc = tk.Button(tabs[1], text="Submit", width=20, anchor='center', command=lambda: app_btn_manager(4))
+    entry_income = tk.Entry(tabs[1], width=40, font=("Candara Light", 12), textvariable=Window.dat_income)
+    entry_balance = tk.Entry(tabs[1], width=40, font=("Candara Light", 12), textvariable=Window.dat_balance)
+    btn_sbmt_money = tk.Button(tabs[1], text="Submit", width=20, anchor='center', command=lambda: app_btn_manager(4))
 
-    win_balance_display = tabs_canvas[1].create_window(0, 0, anchor='center', window=entry_income)
-    win_sbmt_inc_display = tabs_canvas[1].create_window(0, 0, anchor='center', window=btn_sbmt_inc)
+    win_balance_display = tabs_canvas[1].create_window(0, 0, anchor='center', window=entry_balance)
+    win_income_display = tabs_canvas[1].create_window(0, 0, anchor='n', window=entry_income)
+    win_sbmt_money_display = tabs_canvas[1].create_window(0, 0, anchor='n', window=btn_sbmt_money)
     # >>> Tab 2 Content END <<<
 
     # Tab 3 Content
@@ -432,7 +489,7 @@ if __name__ == "__main__":
 
     # Tab 4 Content
     drp_cats = ttk.Combobox(tabs[3], values=Window.dat_dropdown_categories, state='readonly', font=("Candara Light", 12))
-    txt_test = tabs_canvas[3].create_text(0, 0, anchor='n', font=("Candara Light", 12), justify='center', text=Strings.balance_desc)
+    txt_test = tabs_canvas[3].create_text(0, 0, anchor='n', font=("Candara Light", 12), justify='center', text=Strings.money_disclaimer)
     entry_expense_amount = tk.Entry(tabs[3], width=40, font=("Candara Light", 12), textvariable=Window.dat_expense_amount)
     btn_sbmt_expense_amount = tk.Button(tabs[3], text="Submit", width=20, anchor='center', command=lambda: app_btn_manager(6))
 
@@ -440,6 +497,7 @@ if __name__ == "__main__":
     win_sbmt_expense_amount = tabs_canvas[3].create_window(0, 0, anchor='center', window=btn_sbmt_expense_amount)
     win_dropdown_cats = tabs_canvas[3].create_window(0, 0, anchor='center', window=drp_cats)
     # >>>Tab 4 Content End
+
     # Tab 5 Content
     # Needs buttons to select data sets
     report_frame = tk.Frame(tabs[4])
