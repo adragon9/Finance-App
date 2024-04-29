@@ -117,7 +117,7 @@ class User:
         status = ""
         if expense_amount.strip() == '':
             connection.close()
-            status = "Expense must be greater than 0!"
+            status = "There is no input for 'balance'!"
             return status
         elif expense_cat.strip() == '':
             connection.close()
@@ -188,6 +188,10 @@ class User:
         connection = sqlite3.connect("Users.db")
         cursor = connection.cursor()
         status = ""
+
+        if income.strip() == "":
+            status = "There is no input for 'income'!"
+            return status
 
         try:
             self.income = float(income)
