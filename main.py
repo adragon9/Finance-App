@@ -224,7 +224,6 @@ def app_btn_manager(event_id):
         tabs_canvas[3].itemconfigure(user_info[3], text=add_expense)
         root.after(user_info_timer, lambda: revert_text(tabs_canvas[3], user_info[3]))
         entry_expense_amount.delete(0, tk.END)
-        # if add_expense:
 
 
 def report_event_manager(event_id):
@@ -346,7 +345,13 @@ def tab_change(event):
     entry_expense_amount.delete(0, tk.END)
     entry_expense_cat.delete(0, tk.END)
     entry_expense_desc.delete("1.0", "end-1c")
-
+    try:
+        for i in range(num_tabs+1):
+            if i == 1:
+                revert_text(tabs_canvas[i], txt_user_info2)
+            revert_text(tabs_canvas[i], user_info[i])
+    except IndexError:
+        pass
     window_adjustment(None)
     root.update()
 
