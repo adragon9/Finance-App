@@ -115,7 +115,6 @@ class User:
         now = datetime.datetime.now()
         date = now.strftime("%m-%d-%Y %H:%M:%S")
         status = ""
-
         if expense_amount.strip() == '':
             connection.close()
             status = "Expense must be greater than 0!"

@@ -139,6 +139,9 @@ def app_btn_manager(event_id):
         else:
             tabs_canvas[0].itemconfig(user_info[0], text=Strings.fail_create_user)
             root.after(user_info_timer, lambda: revert_text(tabs_canvas[0], user_info[0]))
+
+        entry_username.delete(0, tk.END)
+        entry_pass.delete(0, tk.END)
     # Logout event
     elif event_id == 3:
         # Clear saved user and password
@@ -217,10 +220,10 @@ def app_btn_manager(event_id):
         root.after(user_info_timer, lambda: revert_text(tabs_canvas[2], user_info[2]))
     # Add expense of selected type
     elif event_id == 6:
-        entry_expense_amount.delete(0, tk.END)
         add_expense = Window.current_user.add_expense(drp_cats.get(), Window.dat_expense_amount.get())
         tabs_canvas[3].itemconfigure(user_info[3], text=add_expense)
         root.after(user_info_timer, lambda: revert_text(tabs_canvas[3], user_info[3]))
+        entry_expense_amount.delete(0, tk.END)
         # if add_expense:
 
 
