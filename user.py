@@ -14,8 +14,8 @@ class User:
         self.username = username
         self.password = password
         self.income = 0.0
-        self.now = dt.datetime.now()
-        self.date = self.now.strftime("%m-%d-%Y %I:%M:%S %p")
+        self.date = dt.datetime.now()
+        # "%m-%d-%Y %I:%M:%S %p" <-- format for 12-hour if we need to convert
 
     def create_user(self):
         connection = sqlite3.connect("Users.db")

@@ -1,9 +1,11 @@
+import datetime
 import sqlite3
 import tkinter as tk
 from tkinter import ttk
 
 import ReportViewer
 import TabManager
+import calculations
 import user
 from AppData import Window
 from strings import Strings
@@ -49,6 +51,7 @@ def get_categories(username):
     categories = []
     for category in fetch:
         categories.append(category[0])
+    connection.close()
     return categories
 
 
@@ -82,6 +85,7 @@ def app_btn_manager(event_id):
             Window.current_user = cur_user
             Window.saved_dat_user = Window.dat_user.get()
             Window.saved_dat_pass = Window.dat_password.get()
+            Window.saved_dat_income = Window.current_user.get_income()
             Window.dat_dropdown_categories = get_categories(Window.saved_dat_user)
             drp_cats.configure(values=Window.dat_dropdown_categories)
             # Clear the entry boxes
@@ -188,12 +192,12 @@ def app_btn_manager(event_id):
         tabs_canvas[0].itemconfig(txt_splash, text=Strings.splash)
     # Submit user balance and income
     elif event_id == 4:
-        # print(Window.saved_dat_user, Window.saved_dat_pass) <-- used to check if the username and pass was being saved
         if Window.current_user is not None:
             data_backup()
             balance = set_session_balance(entry_balance.get())
             income = Window.current_user.set_income(entry_income.get())
-
+            # Update the income
+            Window.saved_dat_income = Window.current_user.get_income()
             tabs_canvas[1].itemconfig(user_info[1], text=balance)
             tabs_canvas[1].itemconfig(txt_user_info2, text=income)
             entry_balance.delete(0, tk.END)
@@ -232,22 +236,61 @@ def report_event_manager(event_id):
 
     # gets ALL USER INFO, REMOVE/REPLACE FOR FINAL BUILD
     if event_id == 1:
-        rv = ReportViewer.db_get_all()
-        item_string = ""
-        for item in rv:
-            for iteration, element in enumerate(item):
-                if iteration != len(item) - 1:
-                    item_string += str(element) + ", "
-                else:
-                    item_string += str(element) + ";"
-            report_display.insert(tk.END, item_string, "center")
+        Window.month_sel = drp_months.get()
+        Window.year_sel = entry_year.get()
+
+        income_report = f"Your saved income is: ${float(Window.saved_dat_income):,.2f}"
+        if Window.saved_dat_balance is not None:
+            balance_report = f"Your saved balance is: ${float(Window.saved_dat_balance):,.2f}"
+        else:
+            balance_report = f"You have no saved balance for this session"
+
+        sum_expenses = calculations.total_expenses()
+        net_income = calculations.net_income()
+        date = f"{Window.month_sel}-{Window.year_sel}"
+        current_time = datetime.datetime.now().strftime("%m-%d-%Y %I:%M:%S %p")
+        if Window.calc_balance_impact is not None and abs(Window.calc_monthly_net) > 0:
+            impact_report = f"Your balance has gone from ${Window.saved_dat_balance:,.2f} -> ${Window.calc_balance_impact:,.2f}"
+        else:
+            impact_report = f"There is no balance impact to report"
+
+        cat_count = calculations.cat_breakdown()[0]
+        cat_comparison = calculations.cat_breakdown()[1]
+
+        # Display and format report view
+        report_display.insert(tk.END, f"REPORT FOR: {date}\n\n", "center")
+        report_display.insert(tk.END, f"GENERATED: {current_time}\n\n", "center")
+        report_display.insert(tk.END, sum_expenses, "center")
+        report_display.insert(tk.END, '\n' * 2, "center")
+        report_display.insert(tk.END, income_report, "center")
+        report_display.insert(tk.END, '\n', "center")
+        report_display.insert(tk.END, net_income, "center")
+        report_display.insert(tk.END, '\n' * 2, "center")
+        report_display.insert(tk.END, balance_report, "center")
+        report_display.insert(tk.END, '\n', "center")
+        report_display.insert(tk.END, impact_report, "center")
+        report_display.insert(tk.END, '\n' * 2, "center")
+        report_display.insert(tk.END, "--CATEGORY BREAKDOWN--", "center")
+        report_display.insert(tk.END, '\n', "center")
+        for item, count in cat_count.items():
+            report_display.insert(tk.END, f"You had {count} items in the {item}(s) category.", "center")
             report_display.insert(tk.END, '\n', "center")
-            item_string = ""
+        # Extra space between lines for visual clarity
+        report_display.insert(tk.END, '\n', "center")
+
+        for item, count in cat_comparison.items():
+            report_display.insert(tk.END, f"You spent ${count:,.2f} on items in the {item}(s) category.", "center")
+            report_display.insert(tk.END, '\n', "center")
 
     # Lists the expenses of the current user
     elif event_id == 2:
-        rv = ReportViewer.db_get_expense_total(Window.saved_dat_user)
+        Window.month_sel = drp_months.get()
+        Window.year_sel = entry_year.get()
+
+        rv = ReportViewer.db_get_expenses()
         item_string = ""
+        date = f"{Window.month_sel}-{Window.year_sel}"
+        report_display.insert(tk.END, f"ALL EXPENSES FOR: {date}\n\n", "center")
         for item in rv:
             for iteration, element in enumerate(item):
                 if iteration != len(item) - 1:
@@ -327,6 +370,10 @@ def window_adjustment(event):
         report_display.config(width=round(tabs_w[t] * .11), height=tabs_h[t] / 21)
         tabs_canvas[t].coords(win_report_all, report_frame.winfo_x() + 74, (report_frame.winfo_y() + report_frame.winfo_reqheight()) + 5)
         tabs_canvas[t].coords(win_report_expenses, tabs_canvas[t].coords(win_report_all)[0] + btn_report_expenses.winfo_reqwidth(), tabs_canvas[t].coords(win_report_all)[1])
+        tabs_canvas[t].coords(win_month, tabs_canvas[t].coords(win_report_expenses)[0] + 220, tabs_canvas[t].coords(win_report_all)[1] + 2)
+        tabs_canvas[t].coords(txt_months, tabs_canvas[t].coords(win_report_expenses)[0] + 140, tabs_canvas[t].coords(win_month)[1])
+        tabs_canvas[t].coords(txt_year, tabs_canvas[t].coords(win_month)[0] + 100, tabs_canvas[t].coords(win_year)[1])
+        tabs_canvas[t].coords(win_year, tabs_canvas[t].coords(txt_year)[0] + 90, tabs_canvas[t].coords(win_month)[1])
 
 
 # The logout button was getting a focus box for some reason, this fixed it.
@@ -346,7 +393,7 @@ def tab_change(event):
     entry_expense_cat.delete(0, tk.END)
     entry_expense_desc.delete("1.0", "end-1c")
     try:
-        for i in range(num_tabs+1):
+        for i in range(num_tabs + 1):
             if i == 1:
                 revert_text(tabs_canvas[i], txt_user_info2)
             revert_text(tabs_canvas[i], user_info[i])
@@ -372,7 +419,7 @@ if __name__ == "__main__":
     # This is a master control for the number and names of tabs
     # >>> THE NUMBER OF TABS AND THE NUMBER OF STRINGS IN tab_names MUST MATCH <<<
     num_tabs = 5
-    tab_names = ["Home", "Set Income", "Expense Tagger", "Add Expense", "test"]
+    tab_names = ["Home", "Set Money", "Expense Tagger", "Add Expense", "Report View"]
     # How long the messages are displayed in ms
     user_info_timer = 5000
     # Needed arrays
@@ -401,6 +448,7 @@ if __name__ == "__main__":
     Window.dat_income = tk.StringVar()
     Window.dat_expense_cat = tk.StringVar()
     Window.dat_expense_amount = tk.StringVar()
+    Window.dat_year = tk.IntVar()
     # This is the style sheet for the ttk module
     style = ttk.Style()
     style.theme_create("CustomStyle", parent='classic',
@@ -497,7 +545,7 @@ if __name__ == "__main__":
 
     # Tab 4 Content
     drp_cats = ttk.Combobox(tabs[3], values=Window.dat_dropdown_categories, state='readonly', font=("Candara Light", 12))
-    txt_test = tabs_canvas[3].create_text(0, 0, anchor='n', font=("Candara Light", 12), justify='center', text=Strings.money_disclaimer)
+    txt_test = tabs_canvas[3].create_text(0, 0, anchor='n', font=("Candara Light", 12), justify='center', text=Strings.expense_disclaimer)
     entry_expense_amount = tk.Entry(tabs[3], width=40, font=("Candara Light", 12), textvariable=Window.dat_expense_amount)
     btn_sbmt_expense_amount = tk.Button(tabs[3], text="Submit", width=20, anchor='center', command=lambda: app_btn_manager(6))
 
@@ -510,16 +558,26 @@ if __name__ == "__main__":
     # Needs buttons to select data sets
     report_frame = tk.Frame(tabs[4])
     report_frame.place(relx=.5, rely=.5, anchor='center')
-    # win_report_frame = tabs_canvas[4].create_window(0, 0, anchor='center', window=report_frame)
     report_display = tk.Text(report_frame, wrap='none')
     report_display.pack(expand=True)
+    # Set default value for year
+    Window.dat_year.set(2024)
+    txt_months = tabs_canvas[4].create_text(0, 0, anchor='n', font=("Candara Light", 12), justify='center', text=Strings.lbl_months)
+    drp_months = ttk.Combobox(tabs[4], values=Window.months, state='readonly', font=("Candara Light", 12), width=5)
+    # Set default value for month
+    drp_months.set(Window.months[0])
+
+    txt_year = tabs_canvas[4].create_text(0, 0, anchor='n', font=("Candara Light", 12), justify='center', text=Strings.lbl_year)
+    entry_year = tk.Entry(tabs[4], width=5, justify='center', font=("Candara Light", 12), textvariable=Window.dat_year)
 
     # Buttons for getting different reports
-    btn_report_all = tk.Button(tabs[4], text="Get All Users", width=20, anchor='center', command=lambda: report_event_manager(1))
-    btn_report_expenses = tk.Button(tabs[4], text="Get Expenses", width=20, anchor='center', command=lambda: report_event_manager(2))
+    btn_report_all = tk.Button(tabs[4], text="Generate Report", width=20, anchor='center', command=lambda: report_event_manager(1))
+    btn_report_expenses = tk.Button(tabs[4], text="Expense Breakdown", width=20, anchor='center', command=lambda: report_event_manager(2))
     # Button windows
     win_report_all = tabs_canvas[4].create_window(0, 0, anchor="n", window=btn_report_all)
     win_report_expenses = tabs_canvas[4].create_window(0, 0, anchor="n", window=btn_report_expenses)
+    win_month = tabs_canvas[4].create_window(0, 0, anchor='n', window=drp_months)
+    win_year = tabs_canvas[4].create_window(0, 0, anchor='n', window=entry_year)
 
     scroll = tk.Scrollbar(tabs_canvas[4], orient='vertical', command=report_display.yview)
     report_display.config(yscrollcommand=scroll.set)
