@@ -25,6 +25,11 @@ with open("config.txt") as strings:
                 win_h = 600
 
 
+def validation(event, char):
+    for character in char:
+        print(character)
+
+
 def revert_text(canvas, text):
     canvas.itemconfig(text, text="")
 
@@ -233,6 +238,16 @@ def app_btn_manager(event_id):
 def report_event_manager(event_id):
     report_display.config(state="normal")
     report_display.delete("1.0", "end-1c")
+    bad_characters = []
+    for index, character in enumerate(entry_year.get().strip()):
+        if not character.isdigit():
+            bad_characters.append(index)
+
+    for index, num in enumerate(bad_characters):
+        entry_year.delete(num - index)
+
+    if entry_year.get().strip() == '':
+        Window.dat_year.set(datetime.datetime.now().year)
 
     # gets ALL USER INFO, REMOVE/REPLACE FOR FINAL BUILD
     if event_id == 1:
