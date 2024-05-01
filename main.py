@@ -263,7 +263,7 @@ def report_event_manager(event_id):
         net_income = calculations.net_income()
         current_time = datetime.datetime.now().strftime("%m-%d-%Y %I:%M:%S %p")
         if Window.calc_balance_impact is not None and abs(Window.calc_monthly_net) > 0:
-            impact_report = f"Your balance has gone from ${Window.saved_dat_balance:,.2f} -> ${Window.calc_balance_impact:,.2f}"
+            impact_report = f"Your balance at the end of the month has gone from ${Window.saved_dat_balance:,.2f} to ${Window.calc_balance_impact:,.2f}"
         else:
             impact_report = f"There is no balance impact to report"
 
