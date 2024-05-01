@@ -132,6 +132,10 @@ class User:
             status = "The value you have entered is not a number!"
             return status
 
+        if expense_amount < 0:
+            status = "Your expense cannot be less than 0!"
+            return status
+
         try:
             cursor.execute("""INSERT INTO expenses(
             category_name,
