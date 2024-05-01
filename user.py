@@ -33,8 +33,7 @@ class User:
             CREATE TABLE IF NOT EXISTS users(
             user_name TEXT PRIMARY KEY,
             date_created DATETIME,
-            password TEXT,
-            income MONEY)""")
+            password TEXT)""")
 
             cursor.execute("""CREATE TABLE IF NOT EXISTS expense_categories(
             category_name TEXT,
@@ -54,24 +53,30 @@ class User:
             FOREIGN KEY(user_name) REFERENCES users(user_name),
             FOREIGN KEY(category_name) REFERENCES expense_categories(category_name))""")
 
+            cursor.execute("""
+            CREATE TABLE IF NOT EXISTS incomes(
+            user_name TEXT,
+            income MONEY,
+            income_date DATE PRIMARY KEY,
+            FOREIGN KEY(user_name) REFERENCES users(user_name))""")
+
             try:
                 cursor.execute("""
                 INSERT INTO users(
                 user_name,
                 date_created,
-                password,
-                income) VALUES(?,?,?,?)""", (self.username, self.date, self.password, self.income))
+                password) VALUES(?,?,?)""", (self.username, self.date, self.password))
+
+                cursor.execute("""
+                INSERT INTO incomes(
+                user_name,
+                income_date) VALUES(?,?)""", (self.username, self.date.strftime('%m-%Y')))
+
             except sqlite3.IntegrityError:
                 print("USERNAME TAKEN")
                 connection.close()
                 return False
             connection.commit()
-
-            # Debug print remove later
-            cursor.execute("SELECT * FROM users")
-            rows = cursor.fetchall()
-            for row in rows:
-                print(row)
             connection.close()
             return True
         else:
@@ -188,33 +193,51 @@ class User:
         if income.strip() == "":
             status = "There is no input for 'income'!"
             return status
-
+        income = ''.join(char for char in income if char.isdigit() or char == ".")
         try:
             self.income = float(income)
-            cursor.execute("""UPDATE users
+            cursor.execute("""UPDATE incomes
             SET income = ?
-            WHERE user_name = ?""", (self.income, self.username))
+            WHERE user_name = ? 
+            AND income_date = ?""", (self.income, self.username, self.date.strftime('%m-%Y')))
 
             connection.commit()
             connection.close()
             status = f"Income set to: ${self.income:,.2f}"
         except ValueError:
             status = "Your input for 'income' is not a number!"
+        except sqlite3.OperationalError as e:
+            print(e)
 
         return status
 
-    def get_income(self):
+    def get_income(self, date=None):
         connection = sqlite3.connect("Users.db")
         cursor = connection.cursor()
-
-        cursor.execute("""
-        SELECT income
-        FROM users
-        WHERE user_name = ?""", (self.username,))
+        if date is None:
+            # Debug
+            # print("Date is None")
+            cursor.execute("""
+            SELECT income
+            FROM incomes
+            WHERE user_name = ?
+            AND income_date = ?""", (self.username, self.date.strftime('%m-%Y')))
+        else:
+            # Debug
+            # print(f"Date is {date}")
+            cursor.execute("""
+            SELECT income
+            FROM incomes
+            WHERE user_name = ?
+            AND income_date = ?""", (self.username, date))
 
         bal = cursor.fetchone()
-        self.income = bal[0]
+        try:
+            self.income = bal[0]
+        except TypeError as e:
+            # Debug
+            # print(e, bal)
+            return "0"
         connection.close()
 
-        print(self.income)
         return self.income

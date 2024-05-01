@@ -25,11 +25,6 @@ with open("config.txt") as strings:
                 win_h = 600
 
 
-def validation(event, char):
-    for character in char:
-        print(character)
-
-
 def revert_text(canvas, text):
     canvas.itemconfig(text, text="")
 
@@ -59,13 +54,14 @@ def get_categories(username):
     connection.close()
     return categories
 
-
-def dropdown_control(*args):
-    print(drp_cats.get())
+# I think this is a debug function
+# def dropdown_control(*args):
+    # print(drp_cats.get())
 
 
 def set_session_balance(balance):
     status = ""
+    balance = ''.join(char for char in balance if char.isdigit() or char == '.')
     if balance.strip() == '':
         status = "There is no input for 'balance'!"
         return status
@@ -124,7 +120,8 @@ def app_btn_manager(event_id):
     # Create user event
     elif event_id == 2:
         status = cur_user.create_user()
-        print(status)
+        # Debug
+        # print(status)
         if status:
             tabs_canvas[0].itemconfig(user_info[0], text=Strings.success_create_user)
             root.after(user_info_timer, lambda: revert_text(tabs_canvas[0], user_info[0]))
@@ -218,8 +215,8 @@ def app_btn_manager(event_id):
 
         entry_expense_desc.delete("1.0", "end-1c")
         entry_expense_cat.delete(0, tk.END)
-
-        print(Window.saved_dat_expense_cat, Window.saved_dat_expense_desc)
+        # Debug
+        # print(Window.saved_dat_expense_cat, Window.saved_dat_expense_desc)
         create_expense = Window.current_user.create_expense_tag(Window.saved_dat_expense_cat, Window.saved_dat_expense_desc)
         # Update the category dropdown box
         Window.dat_dropdown_categories = get_categories(Window.saved_dat_user)
@@ -249,12 +246,14 @@ def report_event_manager(event_id):
     if entry_year.get().strip() == '':
         Window.dat_year.set(datetime.datetime.now().year)
 
-    # gets ALL USER INFO, REMOVE/REPLACE FOR FINAL BUILD
+    # First report button
     if event_id == 1:
+        # Set the date
         Window.month_sel = drp_months.get()
         Window.year_sel = entry_year.get()
+        date = f"{Window.month_sel}-{Window.year_sel}"
 
-        income_report = f"Your saved income is: ${float(Window.saved_dat_income):,.2f}"
+        income_report = f"Your saved income is: ${float(Window.current_user.get_income(date)):,.2f}"
         if Window.saved_dat_balance is not None:
             balance_report = f"Your saved balance is: ${float(Window.saved_dat_balance):,.2f}"
         else:
@@ -262,7 +261,6 @@ def report_event_manager(event_id):
 
         sum_expenses = calculations.total_expenses()
         net_income = calculations.net_income()
-        date = f"{Window.month_sel}-{Window.year_sel}"
         current_time = datetime.datetime.now().strftime("%m-%d-%Y %I:%M:%S %p")
         if Window.calc_balance_impact is not None and abs(Window.calc_monthly_net) > 0:
             impact_report = f"Your balance has gone from ${Window.saved_dat_balance:,.2f} -> ${Window.calc_balance_impact:,.2f}"
@@ -309,9 +307,9 @@ def report_event_manager(event_id):
         for item in rv:
             for iteration, element in enumerate(item):
                 if iteration != len(item) - 1:
-                    item_string += str(element) + ", "
+                    item_string += f"{element}, "
                 else:
-                    item_string += str(element) + ";"
+                    item_string += f"${element:,.2f};"
             report_display.insert(tk.END, item_string, "center")
             report_display.insert(tk.END, '\n', "center")
             item_string = ""
@@ -608,7 +606,8 @@ if __name__ == "__main__":
     tabControl.pack(fill=tk.BOTH, expand=True)
     # This is what calls the window adjust definition when the window is configured.
     hide_tabs()
-    drp_cats.bind("<<ComboboxSelected>>", dropdown_control)
+    # This bind was for debugging
+    # drp_cats.bind("<<ComboboxSelected>>", dropdown_control)
     root.bind('<Configure>', window_adjustment)
     tabControl.bind("<<NotebookTabChanged>>", tab_change)
     root.mainloop()

@@ -8,7 +8,8 @@ from AppData import Window
 def total_expenses():
     connection = sqlite3.Connection('Users.db')
     cursor = connection.cursor()
-    print(Window.month_sel)
+    # Debug
+    # print(Window.month_sel)
     if Window.month_sel is None or Window.year_sel is None:
         cursor.execute("""
         SELECT expense_amount
@@ -32,16 +33,23 @@ def total_expenses():
 
 
 def net_income():
+    current_date = datetime.datetime.now().strftime('%m-%Y')
+    user_date = f"{Window.month_sel}-{Window.year_sel}"
+
     if Window.calc_total_expenses is None:
-        return f"Your net income is: ${Window.current_user.get_income():,.2f} A PROBLEM OCCURRED TOTAL EXPENSES UNAVAILABLE!"
+        return f"Your net income is: ${Window.current_user.get_income(user_date):,.2f} A PROBLEM OCCURRED TOTAL EXPENSES UNAVAILABLE!"
     else:
-        Window.calc_monthly_net = Window.saved_dat_income - Window.calc_total_expenses
+        if user_date == current_date:
+            Window.calc_monthly_net = Window.saved_dat_income - Window.calc_total_expenses
+        else:
+            Window.calc_monthly_net = float(Window.current_user.get_income(user_date)) - Window.calc_total_expenses
         net_impact()
         return f"Your net income is: ${Window.calc_monthly_net:,.2f}"
 
 
 def net_impact():
-    print(Window.saved_dat_balance)
+    # Debug
+    # print(Window.saved_dat_balance)
     try:
         Window.calc_balance_impact = Window.calc_monthly_net + Window.saved_dat_balance
     except TypeError:
@@ -69,7 +77,8 @@ def cat_breakdown():
     item_count = {}
     item_value_totals = {}
     item_lists = []
-    print(data)
+    # Debug
+    # print(data)
     for item in data:
         item_count.update({item[0]: 0})
         item_value_totals.update({item[0]: 0})
