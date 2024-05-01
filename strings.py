@@ -5,8 +5,10 @@ from dataclasses import dataclass
 class Strings:
     title = "Finance Tracker"
     splash = "WELCOME TO THE APPLICATION"
-    disclaimer = "Make sure to write down your username and password, editing has not been implemented."
-    money_disclaimer = "You may manually set your income here.\nNOTE: THIS WILL OVERWRITE YOUR PREVIOUS INCOME."
+    disclaimer = ("Make sure to write down your username and password, editing has not been implemented.\n"
+                  "Capitalization DOES matter!")
+    money_disclaimer = ("On this page you may set you balance and income\n"
+                        "NOTE: Your income will be saved for the month, however, you must re-enter your balance each session\n")
     expense_disclaimer = "You can add an expense with your custom categories here!"
     balance_desc = "Balance"
     income_desc = "Income"
