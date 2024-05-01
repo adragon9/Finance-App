@@ -57,7 +57,8 @@ class User:
             CREATE TABLE IF NOT EXISTS incomes(
             user_name TEXT,
             income MONEY,
-            income_date DATE PRIMARY KEY,
+            income_date DATE,
+            PRIMARY KEY(user_name, income_date)
             FOREIGN KEY(user_name) REFERENCES users(user_name))""")
 
             try:
