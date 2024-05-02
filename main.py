@@ -1,4 +1,5 @@
 import datetime
+import os.path
 import sqlite3
 import tkinter as tk
 from tkinter import ttk
@@ -10,19 +11,38 @@ import user
 from AppData import Window
 from strings import Strings
 
-with open("config.txt") as strings:
-    for line in strings:
-        key, value = line.replace(' ', '').strip().split("=")
-        if key == "win_width":
-            try:
-                win_w = int(value)
-            except ValueError:
-                win_w = 900
-        if key == "win_height":
-            try:
-                win_h = int(value)
-            except ValueError:
-                win_h = 600
+if not os.path.exists("config.txt"):
+    with open('config.txt', 'w') as file:
+        file.write("win_width = 900\n")
+        file.write("win_height = 600")
+
+    with open("config.txt") as file:
+        for line in file:
+            key, value = line.replace(' ', '').strip().split("=")
+            if key == "win_width":
+                try:
+                    win_w = int(value)
+                except ValueError:
+                    win_w = 900
+            if key == "win_height":
+                try:
+                    win_h = int(value)
+                except ValueError:
+                    win_h = 600
+else:
+    with open("config.txt") as file:
+        for line in file:
+            key, value = line.replace(' ', '').strip().split("=")
+            if key == "win_width":
+                try:
+                    win_w = int(value)
+                except ValueError:
+                    win_w = 900
+            if key == "win_height":
+                try:
+                    win_h = int(value)
+                except ValueError:
+                    win_h = 600
 
 
 def revert_text(canvas, text):
